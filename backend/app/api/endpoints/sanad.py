@@ -78,11 +78,12 @@ async def generate_keys(
     for themselves.
     """
 
+    master_id_str = str(current_master.id)
     client = get_ai_core_client()
     try:
-        return await client.sanad_keys(master_id=str(current_master.id), version=req.version)
+        return await client.sanad_keys(master_id=master_id_str, version=req.version)
     except AICoreError as exc:
-        log.warning("sanad.keys.failed master=%s err=%s", current_master.id, exc)
+        log.warning("sanad.keys.failed master=%s err=%s", master_id_str, exc)
         raise HTTPException(status_code=502, detail=f"AI core error: {exc}") from exc
 
 
@@ -113,15 +114,24 @@ async def sign_sanad(
     convenient URL QR pointing at the provenance page.
     """
 
+    # Cache the master id as a plain str up-front. The ORM object's
+    # attributes can expire after a failed flush — accessing them in
+    # an error path would trigger a lazy SELECT against an aborted
+    # session and surface as PendingRollbackError, which used to escape
+    # the route and turn the response into a raw uvicorn 500 (no CORS
+    # headers, browser shows "CORS Missing").
+    master_id = current_master.id
+    master_id_str = str(master_id)
+
     client = get_ai_core_client()
     try:
         envelope = await client.sanad_sign(
-            master_id=str(current_master.id),
+            master_id=master_id_str,
             payload=req.payload,
             include_qr_image=req.include_qr_image,
         )
     except AICoreError as exc:
-        log.warning("sanad.sign.failed master=%s err=%s", current_master.id, exc)
+        log.warning("sanad.sign.failed master=%s err=%s", master_id_str, exc)
         raise HTTPException(status_code=502, detail=f"AI core error: {exc}") from exc
 
     # Mirror into the buyer-facing sanads table so the dashboard,
@@ -142,7 +152,7 @@ async def sign_sanad(
 
     try:
         new_row = Sanad(
-            master_id=current_master.id,
+            master_id=master_id,
             craft_dna_id=None,
             piece_name=str(piece_name)[:200],
             material_origin=str(material_origin)[:200] if material_origin else None,
@@ -151,14 +161,7 @@ async def sign_sanad(
             is_public=True,
         )
     except Exception:
-        # Construction itself can throw on type coercion errors. Log and
-        # bail out gracefully — the AI core has already persisted the
-        # crypto envelope on its side, so the artisan still has a
-        # verifiable signature.
-        log.exception(
-            "sanad.sign.construct_failed master=%s",
-            current_master.id,
-        )
+        log.exception("sanad.sign.construct_failed master=%s", master_id_str)
         return {**envelope, "sanad_db_id": None, "provenance_url": None}
 
     try:
@@ -167,18 +170,16 @@ async def sign_sanad(
         await db.refresh(new_row)
     except Exception:  # noqa: BLE001
         # Defensive net for legacy schemas (pre-b2c3d4e5f6a7) or any
-        # other persistence error. log.exception captures the full
-        # traceback so Render logs surface the root cause; the
-        # response still returns the cryptographic envelope so the
-        # caller doesn't see a 500.
-        log.exception(
-            "sanad.sign.persist_failed master=%s",
-            current_master.id,
-        )
+        # other persistence error. Order matters: rollback first to
+        # release the aborted transaction, *then* log. log.exception
+        # captures the full traceback so Render logs surface the root
+        # cause; the response still returns the cryptographic envelope
+        # so the caller doesn't see a 500.
         try:
             await db.rollback()
         except Exception:
-            log.exception("sanad.sign.rollback_failed master=%s", current_master.id)
+            log.exception("sanad.sign.rollback_failed master=%s", master_id_str)
+        log.exception("sanad.sign.persist_failed master=%s", master_id_str)
         return {**envelope, "sanad_db_id": None, "provenance_url": None}
 
     return {
