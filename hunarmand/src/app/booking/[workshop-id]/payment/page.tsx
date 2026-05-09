@@ -16,6 +16,7 @@ import {
 } from "@/lib/booking-state";
 import { BookingShell } from "@/components/booking/booking-shell";
 import { SanadBadge } from "@/components/artisan/sanad-badge";
+import { BookingConfirmAction } from "@/components/booking/booking-confirm-action";
 
 /* -------------------------------------------------------------------------
  * /booking/[workshop-id]/payment — Step 3 of 3 — Payment
@@ -218,12 +219,15 @@ export default async function BookingPaymentPage({
           >
             ← Edit your details
           </Link>
-          <button
-            type="submit"
-            className="inline-flex items-center justify-center px-7 py-3 rounded-craft bg-brand text-ink-inverse font-ui tracking-wide hover:bg-brand-light transition-colors min-h-12"
-          >
-            Pay {formatINR(totals.total)} & confirm
-          </button>
+          <BookingConfirmAction
+            artisanSlug={workshop.artisan.slug}
+            workshopKind={workshop.offering.kind as never}
+            isoDate={state.date}
+            participants={state.participants}
+            formStateQuery={buildFormStateQuery(state, reference)}
+            confirmationHref={`/booking/${workshop.offering.id}/confirmation`}
+            total={formatINR(totals.total)}
+          />
         </div>
       </form>
     </BookingShell>
@@ -252,6 +256,32 @@ function SummaryRow({
       <span className="font-mono tabular-nums">{value}</span>
     </li>
   );
+}
+
+/**
+ * Build the URL search-param string the confirmation page expects,
+ * mirroring the hidden inputs in the form above. Used by the live
+ * confirm action that bypasses the form's GET submit.
+ */
+function buildFormStateQuery(
+  state: ReturnType<typeof decodeBookingState>,
+  reference: string,
+): string {
+  const params = new URLSearchParams();
+  params.set("date", state.date);
+  params.set("time", state.timeSlot);
+  params.set("participants", String(state.participants));
+  params.set("tier", state.tierId);
+  if (state.addOnIds.length > 0) {
+    params.set("addons", state.addOnIds.join(","));
+  }
+  params.set("lang", state.language);
+  if (state.fullName) params.set("name", state.fullName);
+  if (state.email) params.set("email", state.email);
+  if (state.phone) params.set("phone", state.phone);
+  if (state.notes) params.set("notes", state.notes);
+  params.set("ref", reference);
+  return params.toString();
 }
 
 function Cell({
