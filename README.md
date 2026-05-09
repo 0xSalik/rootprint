@@ -2,6 +2,36 @@
 
 A Tacit Knowledge Operating System for Kashmir's heritage artisans.
 
+## A scene that frames the work
+
+A seventy-two year old _ustaad_ of _sozni_ embroidery sits on the second
+floor of a wooden workshop in Downtown Srinagar. He threads a needle he
+has held since he was nine. His hands know a stitch that took thirty
+years to perfect. His son drives a taxi in Sopore. His grandson is
+preparing for entrance exams in Bengaluru. Neither of them can _sozni_ a
+single petal.
+
+The _ustaad_ will pass away in this decade. With him goes a stitch no
+museum has, no book has captured, no algorithm has ever seen.
+
+Multiply by the master _kani_ weaver in Kanihama, the _khatamband_
+ceiling-maker in Zaina Kadal, the _naqash_ who layers gold leaf on
+papier-mâché in Rainawari. Multiply by ten thousand workshops. This is
+what happens in Kashmir, every season, right now.
+
+## What Hunarmand is
+
+Hunarmand is the first platform that treats heritage artisans the way a
+mature engineering organisation treats institutional memory: as a
+captureable, queryable, monetisable asset that survives the people who
+created it.
+
+We sit with each master in their own workshop, capture their knowledge
+through a structured AI-led interview in Koshur, and produce a
+permanent, machine-readable _Craft DNA_ that is owned by the artisan
+themselves. That knowledge then powers four interlocking commercial
+layers, each one feeding the next.
+
 | Component | Live |
 |---|---|
 | Frontend (Next.js, Vercel) | https://hunarmand.sal.lol |
@@ -38,35 +68,6 @@ To submit an order flow end-to-end:
 
 ---
 
-## A scene that frames the work
-
-A seventy-two year old _ustaad_ of _sozni_ embroidery sits on the second
-floor of a wooden workshop in Downtown Srinagar. He threads a needle he
-has held since he was nine. His hands know a stitch that took thirty
-years to perfect. His son drives a taxi in Sopore. His grandson is
-preparing for entrance exams in Bengaluru. Neither of them can _sozni_ a
-single petal.
-
-The _ustaad_ will pass away in this decade. With him goes a stitch no
-museum has, no book has captured, no algorithm has ever seen.
-
-Multiply by the master _kani_ weaver in Kanihama, the _khatamband_
-ceiling-maker in Zaina Kadal, the _naqash_ who layers gold leaf on
-papier-mâché in Rainawari. Multiply by ten thousand workshops. This is
-what happens in Kashmir, every season, right now.
-
-## What Hunarmand is
-
-Hunarmand is the first platform that treats heritage artisans the way a
-mature engineering organisation treats institutional memory: as a
-captureable, queryable, monetisable asset that survives the people who
-created it.
-
-We sit with each master in their own workshop, capture their knowledge
-through a structured AI-led interview in Koshur, and produce a
-permanent, machine-readable _Craft DNA_ that is owned by the artisan
-themselves. That knowledge then powers four interlocking commercial
-layers, each one feeding the next.
 
 | Layer | What it does | Frontend surface |
 |---|---|---|
