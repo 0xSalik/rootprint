@@ -154,8 +154,10 @@ async def sign_sanad(
         await db.commit()
         await db.refresh(new_row)
     except Exception as exc:  # noqa: BLE001
-        # craft_dna_id is non-null in some deployments; fall back to a
-        # row without persistence so the user still gets the envelope.
+        # Defensive: if the schema still has the legacy NOT NULL constraint
+        # (pre-b2c3d4e5f6a7) or some other persistence error occurs, return
+        # the cryptographic envelope so the artisan still has a verifiable
+        # signature even if our index couldn't store the row.
         await db.rollback()
         log.warning(
             "sanad.sign.persist_failed master=%s err=%s",
