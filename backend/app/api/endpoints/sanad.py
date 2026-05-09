@@ -90,12 +90,32 @@ async def generate_keys(
 async def sign_sanad(
     req: SignRequest,
     current_master: Master = Depends(get_current_master),
+    db: AsyncSession = Depends(get_db),
 ) -> dict:
-    """Sign a Sanad metadata payload via the AI core's Ed25519 + JCS path."""
+    """Sign a Sanad metadata payload via the AI core's Ed25519 + JCS path,
+    then persist a buyer-facing row in the backend's ``sanads`` table.
+
+    Two side-effects:
+
+    1. The AI core mints the cryptographic envelope (Ed25519 signature
+       over the RFC 8785 canonical payload) and stores it in its own
+       ``ai_sanads`` table for replay-style verification.
+    2. We mirror the buyer-facing essentials (piece name, material
+       origin, signature in hex, the payload as JSON) into the backend's
+       ``sanads`` table so the artisan's dashboard
+       (``GET /sanad?master_id=``), the public listing, and the
+       URL-QR endpoint (``GET /sanad/{id}/qr``) all surface it
+       immediately.
+
+    The response augments the AI core envelope with the backend's
+    ``sanad_db_id`` (UUID) and a pre-built ``provenance_url`` so the
+    frontend can render both the offline-verifiable JWS QR *and* a
+    convenient URL QR pointing at the provenance page.
+    """
 
     client = get_ai_core_client()
     try:
-        return await client.sanad_sign(
+        envelope = await client.sanad_sign(
             master_id=str(current_master.id),
             payload=req.payload,
             include_qr_image=req.include_qr_image,
@@ -103,6 +123,52 @@ async def sign_sanad(
     except AICoreError as exc:
         log.warning("sanad.sign.failed master=%s err=%s", current_master.id, exc)
         raise HTTPException(status_code=502, detail=f"AI core error: {exc}") from exc
+
+    # Mirror into the buyer-facing sanads table so the dashboard,
+    # listing, and URL-QR routes can find the piece without bouncing
+    # back to the AI core.
+    payload = envelope.get("payload") or req.payload
+    piece_name = (
+        payload.get("short_summary")
+        or (payload.get("technique_names") or [None])[0]
+        or payload.get("sanad_id")
+        or "Authenticated piece"
+    )
+    materials = payload.get("materials_summary") or []
+    if isinstance(materials, list) and materials:
+        material_origin = ", ".join(str(m) for m in materials)
+    else:
+        material_origin = payload.get("made_at_workshop")
+
+    new_row = Sanad(
+        master_id=current_master.id,
+        craft_dna_id=None,
+        piece_name=str(piece_name)[:200],
+        material_origin=str(material_origin)[:200] if material_origin else None,
+        crypto_signature=envelope.get("signature"),
+        metadata_json=payload,
+        is_public=True,
+    )
+    try:
+        db.add(new_row)
+        await db.commit()
+        await db.refresh(new_row)
+    except Exception as exc:  # noqa: BLE001
+        # craft_dna_id is non-null in some deployments; fall back to a
+        # row without persistence so the user still gets the envelope.
+        await db.rollback()
+        log.warning(
+            "sanad.sign.persist_failed master=%s err=%s",
+            current_master.id,
+            exc,
+        )
+        return {**envelope, "sanad_db_id": None, "provenance_url": None}
+
+    return {
+        **envelope,
+        "sanad_db_id": str(new_row.id),
+        "provenance_url": f"/api/v1/sanad/{new_row.id}",
+    }
 
 
 @router.post("/verify")

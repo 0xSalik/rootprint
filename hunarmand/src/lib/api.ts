@@ -182,6 +182,41 @@ export interface SanadCard {
   created_at: string;
 }
 
+export interface SanadSignPayload {
+  sanad_id: string;
+  piece_id: string;
+  craft_category: string;
+  technique_ids?: string[];
+  technique_names?: string[];
+  materials_summary?: string[];
+  made_at_workshop?: string | null;
+  completed_on: string;
+  issued_at: string;
+  lineage: {
+    master_id: string;
+    master_name: string;
+    generation?: number | null;
+    village?: string | null;
+    lineage_chain?: string[];
+  };
+  short_summary: string;
+  fair_price_band?: string | null;
+  extras?: Record<string, string | number | boolean>;
+}
+
+export interface SanadEnvelope {
+  header: { alg: string; kid: string; typ?: string };
+  payload: SanadSignPayload;
+  signature: string;
+  qr_string: string;
+  qr_image_base64?: string | null;
+  public_url?: string | null;
+  /** Backend-issued UUID for the local sanads row (post-PR mint flow). */
+  sanad_db_id?: string | null;
+  /** Convenience URL for the buyer-facing provenance page. */
+  provenance_url?: string | null;
+}
+
 export interface FeedResponse {
   masters: Array<{
     id: string;
@@ -351,6 +386,52 @@ export const api = {
       request<Paginated<SanadCard>>("/api/v1/sanad", {
         query: { master_id, limit, offset },
       }),
+    keys: (token: string, version = 1) =>
+      request<{
+        master_id: string;
+        key_version: number;
+        public_key_b64: string;
+        kid: string;
+      }>("/api/v1/sanad/keys", {
+        method: "POST",
+        token,
+        body: { version },
+      }),
+    sign: (
+      token: string,
+      payload: SanadSignPayload,
+      include_qr_image = true,
+    ) =>
+      request<SanadEnvelope>("/api/v1/sanad/sign", {
+        method: "POST",
+        token,
+        body: { payload, include_qr_image },
+      }),
+    verify: (qr_string: string, public_key_b64?: string) =>
+      request<{
+        valid: boolean;
+        sanad_id?: string | null;
+        master_id?: string | null;
+        master_name?: string | null;
+        reason?: string | null;
+      }>("/api/v1/sanad/verify", {
+        method: "POST",
+        body: { qr_string, public_key_b64 },
+      }),
+    /** Per-piece DB lookup — drives the public provenance page. */
+    detail: (id: string) =>
+      request<{
+        sanad_id: string;
+        piece_name: string;
+        material_origin?: string | null;
+        signature_hex?: string | null;
+        is_public: boolean;
+        artisan: string;
+        metadata_json?: Record<string, unknown> | null;
+      }>(`/api/v1/sanad/${id}`),
+    /** Absolute URL for the URL-style QR (PNG). The endpoint streams
+     *  the image directly so we point an `<img>` tag at it. */
+    qrUrl: (id: string) => `${API_BASE_URL}/api/v1/sanad/${id}/qr`,
   },
 
   /* Feed */
