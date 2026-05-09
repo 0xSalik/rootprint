@@ -20,12 +20,15 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
 
-# CORS — defaults are open enough for local dev; production sets
-# BACKEND_CORS_ORIGINS via env to the Vercel URL(s).
-if settings.BACKEND_CORS_ORIGINS:
+# CORS — defaults to no origins (deny everything) so production must
+# explicitly opt in via BACKEND_CORS_ORIGINS. Accepts comma-separated,
+# single origin, wildcard, or JSON-array formats — see
+# ``Settings.cors_origins_list``.
+_cors_origins = settings.cors_origins_list
+if _cors_origins:
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[str(origin).rstrip("/") for origin in settings.BACKEND_CORS_ORIGINS],
+        allow_origins=_cors_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
