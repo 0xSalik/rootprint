@@ -1,6 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import List, Union, Optional
-from pydantic import AnyHttpUrl, field_validator
+from typing import Optional
 
 
 class Settings(BaseSettings):
@@ -14,17 +13,21 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Hunarmand API"
     API_V1_STR: str = "/api/v1"
 
-    # CORS
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
-
-    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
-    @classmethod
-    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
-        if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",") if i.strip()]
-        elif isinstance(v, (list, str)):
-            return v
-        raise ValueError(v)
+    # CORS — kept as a plain string to dodge pydantic-settings v2's
+    # eager JSON-decode of complex types (List[AnyHttpUrl]) which
+    # happens BEFORE field validators get a chance to split a comma-
+    # separated value, surfacing as
+    #   "error parsing value for field BACKEND_CORS_ORIGINS"
+    # on Render / any deployment that passes the env var as
+    # `https://a,https://b`.
+    #
+    # Accepts:
+    #   * comma-separated:  https://app.vercel.app,http://localhost:3000
+    #   * single origin:    https://app.vercel.app
+    #   * wildcard:         *
+    #   * JSON array:       ["https://app.vercel.app","http://localhost:3000"]
+    # Read it via ``settings.cors_origins_list`` everywhere.
+    BACKEND_CORS_ORIGINS: str = ""
 
     # ── Postgres ────────────────────────────────────────────────────────────
     POSTGRES_SERVER: str = "localhost"
@@ -84,6 +87,34 @@ class Settings(BaseSettings):
 
     # ── Commerce (A2) ──────────────────────────────────────────────────────
     STRIPE_SECRET_KEY: str = "sk_test_mock_key_for_hackathon"
+
+    # ── Helpers ────────────────────────────────────────────────────────────
+    @property
+    def cors_origins_list(self) -> list[str]:
+        """Parse ``BACKEND_CORS_ORIGINS`` into the list FastAPI expects.
+
+        Tolerant of every shape we've seen in the wild — comma-separated,
+        single origin, wildcard, JSON array — so the operator can paste
+        any reasonable value into the Render dashboard without thinking
+        about quoting.
+        """
+
+        raw = (self.BACKEND_CORS_ORIGINS or "").strip()
+        if not raw:
+            return []
+        if raw == "*":
+            return ["*"]
+        # JSON array form: ["a","b"]
+        if raw.startswith("[") and raw.endswith("]"):
+            import json
+
+            try:
+                parsed = json.loads(raw)
+                if isinstance(parsed, list):
+                    return [str(o).strip().rstrip("/") for o in parsed if str(o).strip()]
+            except json.JSONDecodeError:
+                pass  # fall through to comma split
+        return [o.strip().rstrip("/") for o in raw.split(",") if o.strip()]
 
 
 settings = Settings()
