@@ -26,13 +26,28 @@ async def lifespan(app: FastAPI):  # noqa: ANN201
         version=__version__,
         env=settings.env,
         llm=settings.llm_provider,
+        embedding_provider=settings.embedding_provider,
         asr_ladder=settings.asr_ladder_list,
     )
-    if settings.env in {"development", "test"}:
+
+    # Auto-create tables and the pgvector extension on every boot. The
+    # operations are idempotent (`CREATE TABLE IF NOT EXISTS`,
+    # `CREATE EXTENSION IF NOT EXISTS vector`), so this is safe on
+    # restart and on first deploy alike. Set
+    # ``HUNARMAND_SKIP_AUTO_MIGRATE=1`` to opt out (e.g. when you run
+    # Alembic externally).
+    import os
+
+    if os.getenv("HUNARMAND_SKIP_AUTO_MIGRATE", "").lower() not in {"1", "true", "yes"}:
         try:
             await create_all_tables()
+            log.info("hunarmand.db.ready")
         except Exception as exc:  # noqa: BLE001
-            log.warning("hunarmand.db.init_skipped", error=str(exc))
+            # Don't crash the app — `/healthz` will still answer and the
+            # operator can fix DATABASE_URL via the Space's secrets UI
+            # without rebuilding.
+            log.warning("hunarmand.db.init_failed", error=str(exc))
+
     yield
     log.info("hunarmand.shutdown")
 
