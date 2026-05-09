@@ -1,11 +1,16 @@
 from celery import Celery
 
+from app.core.config import settings
+
 celery_app = Celery(
     "worker",
-    broker="redis://localhost:6379/0",
-    backend="redis://localhost:6379/0"
+    broker=settings.CELERY_BROKER_URL,
+    backend=settings.CELERY_RESULT_BACKEND,
 )
 
-celery_app.conf.task_routes = {
-    "app.worker.tasks.process_vault_media": "main-queue"
-}
+celery_app.conf.update(
+    task_routes={"app.worker.tasks.process_vault_media": "main-queue"},
+    task_default_queue="main-queue",
+    task_acks_late=True,
+    worker_prefetch_multiplier=1,
+)

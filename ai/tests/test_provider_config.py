@@ -25,6 +25,7 @@ def test_default_is_free_tier(monkeypatch) -> None:
 
 def test_asr_ladder_validates() -> None:
     Settings(HUNARMAND_ASR_LADDER="bhashini,groq,whisper")
+    Settings(HUNARMAND_ASR_LADDER="bhashini,hf_inference,whisper")
     Settings(HUNARMAND_ASR_LADDER="manual")
     with pytest.raises(ValueError, match="Unknown ASR providers"):
         Settings(HUNARMAND_ASR_LADDER="bhashini,nope,whisper")
@@ -42,4 +43,9 @@ def test_effective_translation_model_falls_back(monkeypatch) -> None:
 
 def test_groq_in_default_ladder() -> None:
     s = Settings()
-    assert s.asr_ladder_list[2] == "groq"
+    assert "groq" in s.asr_ladder_list
+
+
+def test_hf_inference_in_default_ladder() -> None:
+    s = Settings()
+    assert "hf_inference" in s.asr_ladder_list

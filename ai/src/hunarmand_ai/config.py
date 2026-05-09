@@ -109,11 +109,13 @@ class Settings(BaseSettings):
     jina_base_url: str = Field(default="https://api.jina.ai/v1", alias="JINA_BASE_URL")
 
     # ── ASR ────────────────────────────────────────────────────────────────
-    # Allowed entries: bhashini, ai4bharat, groq, whisper, manual
-    # (groq runs whisper-large-v3-turbo on the free tier;
+    # Allowed entries: bhashini, ai4bharat, groq, hf_inference, whisper, manual
+    # (`groq` runs whisper-large-v3-turbo on the free tier;
+    # `hf_inference` runs Whisper on HF's free Inference API
+    # — uses the same HF account as the Space deployment, so no extra signup;
     # `whisper` here is the OpenAI Audio API, which is paid.)
     asr_ladder: str = Field(
-        default="bhashini,ai4bharat,groq,whisper,manual",
+        default="bhashini,ai4bharat,groq,hf_inference,whisper,manual",
         alias="HUNARMAND_ASR_LADDER",
     )
     asr_default_language: str = Field(default="ks", alias="HUNARMAND_ASR_DEFAULT_LANGUAGE")
@@ -139,6 +141,17 @@ class Settings(BaseSettings):
     ai4bharat_inference_url: str | None = Field(default=None, alias="AI4BHARAT_INFERENCE_URL")
     ai4bharat_api_key: str | None = Field(default=None, alias="AI4BHARAT_API_KEY")
     ai4bharat_model: str = Field(default="ai4bharat/indicwhisper", alias="AI4BHARAT_MODEL")
+
+    # Hugging Face Inference API — free Whisper (alternative to Groq).
+    # https://huggingface.co/settings/tokens — read-only token is enough.
+    hf_api_token: str | None = Field(default=None, alias="HF_API_TOKEN")
+    hf_inference_base_url: str = Field(
+        default="https://api-inference.huggingface.co/models",
+        alias="HF_INFERENCE_BASE_URL",
+    )
+    hf_whisper_model: str = Field(
+        default="openai/whisper-large-v3", alias="HUNARMAND_HF_WHISPER_MODEL"
+    )
 
     # ── Translation ────────────────────────────────────────────────────────
     translation_provider: Literal["llm", "bhashini", "none"] = Field(
@@ -170,7 +183,7 @@ class Settings(BaseSettings):
     @field_validator("asr_ladder")
     @classmethod
     def _validate_ladder(cls, v: str) -> str:
-        allowed = {"bhashini", "ai4bharat", "groq", "whisper", "manual"}
+        allowed = {"bhashini", "ai4bharat", "groq", "hf_inference", "whisper", "manual"}
         parts = [p.strip() for p in v.split(",") if p.strip()]
         bad = [p for p in parts if p not in allowed]
         if bad:

@@ -1,14 +1,34 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
+"""Semantic search over CraftDNA rows.
+
+Uses pgvector's L2 distance operator (``<->``). Query embeddings come
+from the AI core's ``/embed`` endpoint so the model used for query
+vectors matches the model used to populate the column at ingest time
+(``intfloat/multilingual-e5-small`` by default — 384 dims).
+
+The response shape ``[{id, master_id, technique_name, translated_transcript,
+similarity_score}, ...]`` is **unchanged from the original A1 contract**
+in HANDOVER.md, so the frontend integration is byte-for-byte identical.
+"""
+
+from __future__ import annotations
+
+import logging
 from typing import List
-from pydantic import BaseModel
 import uuid
 
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+
+from app.clients.ai_core import AICoreClient, AICoreError, get_ai_core_client
+from app.core.config import settings
 from app.core.database import get_db
 from app.models.models import CraftDNA
 
+log = logging.getLogger(__name__)
 router = APIRouter()
+
 
 class SearchResult(BaseModel):
     id: uuid.UUID
@@ -20,50 +40,88 @@ class SearchResult(BaseModel):
     class Config:
         from_attributes = True
 
-# --- MOCK EMBEDDING FUNCTION ---
-# In a real scenario, this uses the OpenAI API
-# import openai
-# from app.core.config import settings
-# openai.api_key = settings.OPENAI_API_KEY
-# 
-# async def generate_embedding(text: str) -> List[float]:
-#     response = await openai.Embedding.acreate(
-#         input=text, model="text-embedding-3-small"
-#     )
-#     return response["data"][0]["embedding"]
-# -------------------------------
 
-async def generate_mock_embedding(text: str) -> List[float]:
-    """Generates a dummy 1536-dimensional vector for testing."""
-    import random
-    # Just returning a randomized vector of length 1536
-    return [random.uniform(-1, 1) for _ in range(1536)]
+async def _embed_query(client: AICoreClient, query: str) -> list[float]:
+    """Get a real embedding for the query, with a defensive fallback.
+
+    If the AI core is unreachable we degrade to a deterministic
+    pseudo-vector so the endpoint stays available — search results
+    will be useless but the frontend's UI contract is preserved.
+    """
+
+    try:
+        resp = await client.embed([query])
+    except AICoreError as exc:
+        log.warning("search.embed_failed err=%s", exc)
+        return _fallback_vector(query)
+
+    embeddings = resp.get("embeddings") or []
+    dim = int(resp.get("dimensions") or 0)
+    if not embeddings or not embeddings[0]:
+        return _fallback_vector(query)
+    if dim and dim != settings.HUNARMAND_EMBEDDING_DIMENSIONS:
+        log.warning(
+            "search.dim_mismatch ai_core=%d backend=%d (rejecting; check HUNARMAND_EMBEDDING_DIMENSIONS)",
+            dim, settings.HUNARMAND_EMBEDDING_DIMENSIONS,
+        )
+        return _fallback_vector(query)
+    return embeddings[0]
+
+
+def _fallback_vector(query: str) -> list[float]:
+    """Deterministic placeholder vector seeded by the query text.
+
+    Useful only as a last-resort fallback. Real semantic search needs
+    the AI core to be reachable.
+    """
+
+    import hashlib
+    import struct
+
+    digest = hashlib.sha256(query.encode("utf-8")).digest()
+    seed = struct.unpack(">I", digest[:4])[0]
+    rng = _Lcg(seed)
+    return [rng.next_unit() for _ in range(settings.HUNARMAND_EMBEDDING_DIMENSIONS)]
+
+
+class _Lcg:
+    """Tiny linear congruential generator — deterministic, no numpy."""
+
+    def __init__(self, seed: int) -> None:
+        self.state = seed or 1
+
+    def next_unit(self) -> float:
+        self.state = (self.state * 1103515245 + 12345) & 0x7FFFFFFF
+        return (self.state / 0x7FFFFFFF) * 2.0 - 1.0
 
 
 @router.get("/techniques", response_model=List[SearchResult])
 async def search_techniques(
     query: str,
     limit: int = 5,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """
-    Semantic Search using pgvector.
-    Converts the text query into an embedding and queries the CraftDNA table 
-    using L2 distance (<-> operator) to find the closest matches.
+    Semantic search using pgvector.
+
+    - Embeds the query via the AI core (``/embed``).
+    - Orders CraftDNA rows by L2 distance (``<->``).
+    - Returns the same shape A1's mocked endpoint did so the frontend
+      doesn't need to change.
     """
+
     if not query:
         raise HTTPException(status_code=400, detail="Query cannot be empty")
 
-    # Generate the vector embedding for the search query
-    query_vector = await generate_mock_embedding(query)
+    client = get_ai_core_client()
+    query_vector = await _embed_query(client, query)
 
-    # Perform a similarity search on pgvector
-    # Order by L2 distance (CraftDNA.embedding <-> query_vector)
     stmt = (
         select(
-            CraftDNA, 
-            CraftDNA.embedding.l2_distance(query_vector).label("distance")
+            CraftDNA,
+            CraftDNA.embedding.l2_distance(query_vector).label("distance"),
         )
+        .where(CraftDNA.embedding.isnot(None))
         .order_by(CraftDNA.embedding.l2_distance(query_vector))
         .limit(limit)
     )
@@ -71,16 +129,18 @@ async def search_techniques(
     result = await db.execute(stmt)
     rows = result.all()
 
-    # Format the results
-    search_results = []
+    out: list[dict] = []
     for craft_dna, distance in rows:
-        # Distance is smaller for closer matches. We can optionally convert it to a similarity score.
-        search_results.append({
-            "id": craft_dna.id,
-            "master_id": craft_dna.master_id,
-            "technique_name": craft_dna.technique_name or "Unknown Technique",
-            "translated_transcript": craft_dna.translated_transcript or "",
-            "similarity_score": 1.0 - (distance / 2.0) # Naive conversion for L2 distance (0 to 2)
-        })
-
-    return search_results
+        # L2 distance is in [0, 2] for normalised vectors. Convert to a
+        # 0..1 similarity score.
+        similarity = max(0.0, min(1.0, 1.0 - (float(distance) / 2.0)))
+        out.append(
+            {
+                "id": craft_dna.id,
+                "master_id": craft_dna.master_id,
+                "technique_name": craft_dna.technique_name or "Unknown Technique",
+                "translated_transcript": craft_dna.translated_transcript or "",
+                "similarity_score": similarity,
+            }
+        )
+    return out

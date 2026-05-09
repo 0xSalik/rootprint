@@ -18,6 +18,7 @@ class AsrProvider(str, Enum):
     BHASHINI = "bhashini"
     AI4BHARAT = "ai4bharat"
     GROQ = "groq"
+    HF_INFERENCE = "hf_inference"
     WHISPER = "whisper"
     MANUAL = "manual"
 

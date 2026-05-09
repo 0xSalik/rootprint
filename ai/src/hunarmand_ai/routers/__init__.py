@@ -1,6 +1,6 @@
 """FastAPI routers."""
 
-from . import asr, ask, extract, health, interview, sanad
+from . import asr, ask, embed, extract, health, interview, sanad
 
 ALL_ROUTERS = [
     health.router,
@@ -8,7 +8,8 @@ ALL_ROUTERS = [
     interview.router,
     extract.router,
     ask.router,
+    embed.router,
     sanad.router,
 ]
 
-__all__ = ["ALL_ROUTERS", "asr", "ask", "extract", "health", "interview", "sanad"]
+__all__ = ["ALL_ROUTERS", "asr", "ask", "embed", "extract", "health", "interview", "sanad"]

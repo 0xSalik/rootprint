@@ -5,6 +5,14 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY
 from sqlalchemy.orm import relationship
 from pgvector.sqlalchemy import Vector
 from app.core.database import Base
+from app.core.config import settings
+
+# Vector dimension is driven by the AI core's embedder. Default 384 matches
+# `intfloat/multilingual-e5-small`. If you switch to OpenAI's
+# `text-embedding-3-small` (1536) or Jina v3 (1024), set
+# HUNARMAND_EMBEDDING_DIMENSIONS to match BEFORE running migrations,
+# and run an alembic upgrade so the column is recreated at the new dim.
+EMBEDDING_DIM: int = settings.HUNARMAND_EMBEDDING_DIMENSIONS
 
 class Master(Base):
     __tablename__ = "masters"
@@ -54,8 +62,11 @@ class CraftDNA(Base):
     technique_graph = Column(JSONB)
     supplier_graph = Column(JSONB)
     
-    # 1536 is standard for OpenAI embeddings, adjust based on the embedding model used
-    embedding = Column(Vector(1536))
+    # Driven by HUNARMAND_EMBEDDING_DIMENSIONS (default 384 for
+    # intfloat/multilingual-e5-small in the AI core). pgvector enforces
+    # this at the column level; switching providers requires an alembic
+    # upgrade.
+    embedding = Column(Vector(EMBEDDING_DIM))
     
     created_at = Column(DateTime, default=datetime.utcnow)
 
