@@ -82,5 +82,8 @@ class Settings(BaseSettings):
     # Legacy/compat — kept so we don't break older .env files.
     OPENAI_API_KEY: str = ""
 
+    # ── Commerce (A2) ──────────────────────────────────────────────────────
+    STRIPE_SECRET_KEY: str = "sk_test_mock_key_for_hackathon"
+
 
 settings = Settings()
