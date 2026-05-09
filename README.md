@@ -438,7 +438,7 @@ Five people, organised as two plus two plus one. The split intentionally
 puts the cryptographic and AI-core work where it can move quickly,
 and the platform and product work where it can ship in parallel.
 
-* **Lead.** AI Interview Engine; Craft DNA schema and the multi-stage
+* **Salik Khan.** AI Interview Engine; Craft DNA schema and the multi-stage
   extractor; the RAG retriever and "Ask the Hunarmand"; the ASR
   fallback ladder including the two new free providers (Groq Whisper,
   Hugging Face Inference) added during the hackathon; the cryptographic Sanad service (Ed25519 keypair lifecycle,
@@ -446,16 +446,16 @@ and the platform and product work where it can ship in parallel.
   offline verifiers); per-endpoint timeout layer; the URL normaliser
   for shared-database safety; the integration of the AI core with the
   backend through a typed async HTTP client.
-* **Track A, Person 1.** Backend foundation: FastAPI scaffolding,
+* **Umaan Mehraj** Backend foundation: FastAPI scaffolding,
   Postgres schema and migrations, JWT auth, S3 presigned uploads,
   Celery task scaffolding, the Render deployment spec.
-* **Track A, Person 2.** Sanad detail and QR endpoints, commerce
+* **Muhammad Anas** Sanad detail and QR endpoints, commerce
   endpoints (workshops, bookings, bundles, orders), the demo seeder
   script.
-* **Track B, Person 1.** Frontend pages, components, and design
+* **Aleena Peer** Frontend pages, components, and design
   system on Next.js. Vault Studio onboarding flow. Master profile
   pages. Workshop and bundle storefronts. Cart and checkout.
-* **Track B, Person 2.** Frontend brand, illustrations, and the
+* **Qazi Muhammad Ateeb** Frontend brand, illustrations, and the
   pitch deck. Public Sanad provenance page (the buyer-facing scan-to-
   verify flow). Integration with the backend's full surface.
 
