@@ -32,51 +32,7 @@ permanent, machine-readable _Craft DNA_ that is owned by the artisan
 themselves. That knowledge then powers four interlocking commercial
 layers, each one feeding the next.
 
-| Component | Live |
-|---|---|
-| Frontend (Next.js, Vercel) | https://hunarmand.sal.lol |
-| Backend API (FastAPI, Render) | https://hunarmand-backend.onrender.com |
-| Backend OpenAPI docs | https://hunarmand-backend.onrender.com/docs |
-| AI core (FastAPI, Hugging Face Spaces) | https://slimshadylol-hunarmand-ai.hf.space |
-| AI core OpenAPI docs | https://slimshadylol-hunarmand-ai.hf.space/docs |
-| Source | https://github.com/0xSalik/rootprint |
-
-The compiled hackathon pitch lives at [`hunarmand_pitch.pdf`](./hunarmand_pitch.pdf).
-
-## Try the live demo
-
-The demo backend uses a mock OTP. Any phone number signs in; the OTP is always `123456`. Two accounts are surfaced as one-tap "Try as ..." buttons on the login page.
-
-| Account | Phone | OTP | Lands on | Sees |
-|---|---|---|---|---|
-| Artisan (Mohammad Yusuf Sheikh, 4th-gen Kanihama pashmina master) | `+919999999999` | `123456` | `/studio` | own workshops, vault sessions, issued Sanads, profile editor |
-| Patron (buyer / collector) | `+918888888888` | `123456` | `/account` | own bookings, own orders, browse links |
-
-The full directory of eighteen artisans (three per craft) is seeded
-into Neon by `hunarmand/scripts/seed-backend.mts`. Each master is
-addressable by their own deterministic phone number; the OTP is the
-same `123456` for every account. The seeded set covers every
-craft (papier-mâché, pashmina, sozni, walnut carving, hand-knotted
-carpet, khatamband) and produces fifty-four workshops between them.
-You can sign in as any of them; visit `https://hunarmand-backend.onrender.com/api/v1/masters?limit=20`
-to see the list.
-
-Both accounts can navigate the entire public surface (`/`, `/bazaar`, `/workshops`, `/sanad/*`, `/artisan/*`, `/craft/*`). The phone number determines the default dashboard after login. After signing in as the artisan and going to `/studio/workshops` you can add, hide, or delete workshops live against the Render backend, and they appear immediately in the "Live additions" strip at the bottom of `/workshops`.
-
-To submit a booking flow end-to-end:
-
-1. Sign in as the patron at https://hunarmand.sal.lol/login.
-2. Browse `/workshops`, click any tile, complete the booking.
-3. Visit `/account` to see the booking show up under "Workshops you've booked".
-
-To submit an order flow end-to-end:
-
-1. Sign in as the patron.
-2. Browse `/bazaar`, pick a bundle, run through checkout (Stripe test mode; the demo skips actual card capture).
-3. Visit `/account` to see the order appear under "Pieces in your collection".
-
----
-
+| Component | Live 
 
 | Layer | What it does | Frontend surface |
 |---|---|---|
@@ -158,6 +114,51 @@ masters is open right now.
 
 Every box runs on a free tier. No paid services are required to
 reproduce the deployment.
+|
+|---|---|
+| Frontend (Next.js, Vercel) | https://hunarmand.sal.lol |
+| Backend API (FastAPI, Render) | https://hunarmand-backend.onrender.com |
+| Backend OpenAPI docs | https://hunarmand-backend.onrender.com/docs |
+| AI core (FastAPI, Hugging Face Spaces) | https://slimshadylol-hunarmand-ai.hf.space |
+| AI core OpenAPI docs | https://slimshadylol-hunarmand-ai.hf.space/docs |
+| Source | https://github.com/0xSalik/rootprint |
+
+The compiled hackathon pitch lives at [`hunarmand_pitch.pdf`](./hunarmand_pitch.pdf).
+
+## Try the live demo
+
+The demo backend uses a mock OTP. Any phone number signs in; the OTP is always `123456`. Two accounts are surfaced as one-tap "Try as ..." buttons on the login page.
+
+| Account | Phone | OTP | Lands on | Sees |
+|---|---|---|---|---|
+| Artisan (Mohammad Yusuf Sheikh, 4th-gen Kanihama pashmina master) | `+919999999999` | `123456` | `/studio` | own workshops, vault sessions, issued Sanads, profile editor |
+| Patron (buyer / collector) | `+918888888888` | `123456` | `/account` | own bookings, own orders, browse links |
+
+The full directory of eighteen artisans (three per craft) is seeded
+into Neon by `hunarmand/scripts/seed-backend.mts`. Each master is
+addressable by their own deterministic phone number; the OTP is the
+same `123456` for every account. The seeded set covers every
+craft (papier-mâché, pashmina, sozni, walnut carving, hand-knotted
+carpet, khatamband) and produces fifty-four workshops between them.
+You can sign in as any of them; visit `https://hunarmand-backend.onrender.com/api/v1/masters?limit=20`
+to see the list.
+
+Both accounts can navigate the entire public surface (`/`, `/bazaar`, `/workshops`, `/sanad/*`, `/artisan/*`, `/craft/*`). The phone number determines the default dashboard after login. After signing in as the artisan and going to `/studio/workshops` you can add, hide, or delete workshops live against the Render backend, and they appear immediately in the "Live additions" strip at the bottom of `/workshops`.
+
+To submit a booking flow end-to-end:
+
+1. Sign in as the patron at https://hunarmand.sal.lol/login.
+2. Browse `/workshops`, click any tile, complete the booking.
+3. Visit `/account` to see the booking show up under "Workshops you've booked".
+
+To submit an order flow end-to-end:
+
+1. Sign in as the patron.
+2. Browse `/bazaar`, pick a bundle, run through checkout (Stripe test mode; the demo skips actual card capture).
+3. Visit `/account` to see the order appear under "Pieces in your collection".
+
+---
+
 
 ### Service responsibilities
 
