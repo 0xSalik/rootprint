@@ -5,6 +5,11 @@ import { notFound } from "next/navigation";
 import { getSignedPiece, listSignedPieceIds } from "@/lib/artisans";
 import { DEFAULT_LOCALE, getSanadDict } from "@/lib/sanad-i18n";
 import { SanadView } from "@/components/sanad/sanad-view";
+import {
+  LiveSanadView,
+  type LiveSanadDetails,
+} from "@/components/sanad/live-sanad-view";
+import { API_BASE_URL } from "@/lib/env";
 
 import {
   getArtisan as getPreviewArtisan,
@@ -33,9 +38,15 @@ import { SanadPreview } from "@/components/preview/sanad-preview";
  * "⚠ No Sanad found" warning state takes care of them.
  * ----------------------------------------------------------------------- */
 
-export const dynamic = "force-static";
+/* Seed and preview pieces are pre-rendered statically. Unknown ids
+ * (e.g. a Sanad freshly minted through /studio/sanads/new) fall through
+ * to a runtime lookup against the backend — `dynamicParams = true`
+ * lets Next.js render those on demand, and a short revalidation
+ * window keeps the cached HTML fresh enough that a buyer scanning the
+ * QR seconds after the artisan minted always sees the live row.
+ */
 export const dynamicParams = true;
-export const revalidate = false;
+export const revalidate = 30;
 
 type Params = { "piece-id": string };
 
@@ -129,13 +140,49 @@ export default async function SanadPage({
 
   /* Existing seed-driven Sanad — keep the original SSR-only view. */
   const lookup = getSignedPiece(pieceId);
+  if (lookup) {
+    const dict = getSanadDict(DEFAULT_LOCALE);
+    return (
+      <SanadView
+        pieceId={pieceId}
+        lookup={lookup}
+        locale={DEFAULT_LOCALE}
+        dict={dict}
+      />
+    );
+  }
+
+  /* Live Sanad lookup against the backend. The mint flow's QR points at
+   * /sanad/<row-uuid>; the AI core's public_url uses the payload's
+   * sanad_id (e.g. SND-2026-1332). The backend resolves either format. */
+  const live = await fetchLiveSanad(pieceId);
+  if (live) {
+    return <LiveSanadView piece={live} />;
+  }
+
+  /* Truly unknown — fall back to the original "no Sanad found" view. */
   const dict = getSanadDict(DEFAULT_LOCALE);
   return (
     <SanadView
       pieceId={pieceId}
-      lookup={lookup}
+      lookup={null}
       locale={DEFAULT_LOCALE}
       dict={dict}
     />
   );
+}
+
+async function fetchLiveSanad(pieceId: string): Promise<LiveSanadDetails | null> {
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/api/v1/sanad/${encodeURIComponent(pieceId)}`,
+      { next: { revalidate: 30 } },
+    );
+    if (!res.ok) return null;
+    const body = (await res.json()) as LiveSanadDetails;
+    if (!body || !body.sanad_id || !body.is_public) return null;
+    return body;
+  } catch {
+    return null;
+  }
 }
