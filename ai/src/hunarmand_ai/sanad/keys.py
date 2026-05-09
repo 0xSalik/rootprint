@@ -23,6 +23,7 @@ from nacl.exceptions import BadSignatureError, CryptoError
 from nacl.secret import SecretBox
 from nacl.signing import SigningKey, VerifyKey
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import Settings, get_settings
@@ -55,6 +56,31 @@ class KeyManager:
         master_id: uuid.UUID,
         version: int = 1,
     ) -> MasterKeyRow:
+        """Idempotently provision a keypair for ``(master_id, version)``.
+
+        The frontend mint flow always calls ``POST /sanad/keys`` before
+        the first sign of a session. If the artisan has already minted
+        before, the row exists and we must return it untouched rather
+        than crashing on the ``uq_master_key_version`` unique index.
+        Rotation goes through a *new* version number, never an overwrite
+        of an existing one — that keeps history verifiable against the
+        old public key.
+        """
+
+        existing_stmt = select(MasterKeyRow).where(
+            MasterKeyRow.master_id == master_id,
+            MasterKeyRow.version == version,
+        )
+        existing = (await session.execute(existing_stmt)).scalar_one_or_none()
+        if existing is not None:
+            log.info(
+                "key.exists",
+                master_id=str(master_id),
+                version=version,
+                kid=self.kid(master_id, version),
+            )
+            return existing
+
         signing_key = SigningKey.generate()
         verify_key = signing_key.verify_key
         nonce = secrets.token_bytes(SecretBox.NONCE_SIZE)
@@ -71,9 +97,31 @@ class KeyManager:
             status="active",
         )
         session.add(row)
-        await session.flush()
+        try:
+            await session.flush()
+        except IntegrityError:
+            # Race: another concurrent request inserted the same
+            # (master_id, version) between our SELECT and INSERT. Roll
+            # back this attempt and return the winner's row.
+            await session.rollback()
+            existing = (
+                await session.execute(existing_stmt)
+            ).scalar_one_or_none()
+            if existing is None:
+                raise
+            log.info(
+                "key.exists.race",
+                master_id=str(master_id),
+                version=version,
+                kid=self.kid(master_id, version),
+            )
+            return existing
+
         log.info(
-            "key.generated", master_id=str(master_id), version=version, kid=self.kid(master_id, version)
+            "key.generated",
+            master_id=str(master_id),
+            version=version,
+            kid=self.kid(master_id, version),
         )
         return row
 
