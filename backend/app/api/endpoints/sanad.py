@@ -282,28 +282,58 @@ async def get_sanad_qr(sanad_id: str) -> Response:
 async def get_sanad_details(sanad_id: str, db: AsyncSession = Depends(get_db)) -> dict:
     """Return the Sanad's metadata + the issuing master's name.
 
+    Accepts either the backend's row UUID or the public ``sanad_id``
+    embedded in the signed payload (e.g. ``SND-2026-1332``). The mint
+    flow's two QRs use different formats — the URL-QR points at
+    ``/sanad/<row-uuid>`` while the AI core's ``public_url`` uses the
+    payload's ``sanad_id`` — so this endpoint resolves both.
+
     The buyer-facing provenance page renders this object.
     """
 
+    sanad_record = None
+
+    # Try UUID first; if it parses we look up by primary key.
     try:
         sanad_uuid = uuid.UUID(sanad_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail="Invalid Sanad UUID format.") from exc
+    except ValueError:
+        sanad_uuid = None
 
-    result = await db.execute(select(Sanad).where(Sanad.id == sanad_uuid))
-    sanad_record = result.scalars().first()
+    if sanad_uuid is not None:
+        result = await db.execute(select(Sanad).where(Sanad.id == sanad_uuid))
+        sanad_record = result.scalars().first()
+
+    # Otherwise (or if the UUID lookup missed) fall back to the public
+    # sanad_id stored inside metadata_json. JSONB ->> extracts as text.
+    if sanad_record is None:
+        result = await db.execute(
+            select(Sanad)
+            .where(Sanad.metadata_json["sanad_id"].astext == sanad_id)
+            .order_by(Sanad.created_at.desc())
+            .limit(1)
+        )
+        sanad_record = result.scalars().first()
+
     if not sanad_record:
         raise HTTPException(status_code=404, detail="Sanad record not found.")
 
-    master_result = await db.execute(select(Master).where(Master.id == sanad_record.master_id))
+    master_result = await db.execute(
+        select(Master).where(Master.id == sanad_record.master_id)
+    )
     master_record = master_result.scalars().first()
+
+    metadata = sanad_record.metadata_json or {}
+    public_sanad_id = metadata.get("sanad_id") if isinstance(metadata, dict) else None
 
     return {
         "sanad_id": str(sanad_record.id),
+        "public_sanad_id": public_sanad_id,
         "piece_name": sanad_record.piece_name,
         "material_origin": sanad_record.material_origin,
         "signature_hex": sanad_record.crypto_signature,
         "is_public": sanad_record.is_public,
         "artisan": master_record.name if master_record else "Unknown",
-        "metadata_json": sanad_record.metadata_json,
+        "artisan_id": str(master_record.id) if master_record else None,
+        "issued_at": sanad_record.created_at.isoformat() if sanad_record.created_at else None,
+        "metadata_json": metadata,
     }
