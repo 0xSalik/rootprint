@@ -23,14 +23,17 @@ from __future__ import annotations
 
 import logging
 import uuid
+from datetime import datetime
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
+from app.api.common import Page, PaginationParams
 from app.api.deps import get_current_master
 from app.clients.ai_core import AICoreClient, AICoreError, get_ai_core_client
 from app.core.database import get_db
@@ -118,6 +121,69 @@ async def verify_sanad(req: VerifyRequest) -> dict:
 
 
 # ── DB-backed provenance lookups ───────────────────────────────────────────
+
+
+class SanadCard(BaseModel):
+    """Compact public Sanad shape for directory / feed listings."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    piece_name: str
+    material_origin: Optional[str] = None
+    is_public: bool
+    artisan_name: Optional[str] = None
+    artisan_id: Optional[uuid.UUID] = None
+    created_at: datetime
+
+
+@router.get("", response_model=Page[SanadCard])
+async def list_public_sanads(
+    pagination: PaginationParams = Depends(),
+    master_id: Optional[str] = None,
+    db: AsyncSession = Depends(get_db),
+) -> Page[SanadCard]:
+    """Public Sanad directory — anyone can browse provenance certificates."""
+
+    base = (
+        select(Sanad, Master)
+        .join(Master, Master.id == Sanad.master_id, isouter=True)
+        .where(Sanad.is_public.is_(True))
+    )
+    count_stmt = (
+        select(func.count()).select_from(Sanad).where(Sanad.is_public.is_(True))
+    )
+    if master_id:
+        try:
+            m_uuid = uuid.UUID(master_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail="Invalid master_id.") from exc
+        base = base.where(Sanad.master_id == m_uuid)
+        count_stmt = count_stmt.where(Sanad.master_id == m_uuid)
+
+    total = (await db.execute(count_stmt)).scalar_one()
+    rows = (
+        await db.execute(
+            base.order_by(Sanad.created_at.desc())
+            .limit(pagination.limit)
+            .offset(pagination.offset)
+        )
+    ).all()
+    items = [
+        SanadCard(
+            id=s.id,
+            piece_name=s.piece_name,
+            material_origin=s.material_origin,
+            is_public=bool(s.is_public),
+            artisan_name=m.name if m else None,
+            artisan_id=m.id if m else None,
+            created_at=s.created_at,
+        )
+        for s, m in rows
+    ]
+    return Page[SanadCard](
+        items=items, total=int(total), limit=pagination.limit, offset=pagination.offset
+    )
 
 
 @router.get("/{sanad_id}/qr")
