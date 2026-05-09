@@ -197,6 +197,8 @@ A few things that will save you on stage:
 
 **Frontend gets `CORS preflight blocked`** — `HUNARMAND_CORS_ORIGINS` doesn't include the calling origin. Update the secret. The Space restarts automatically when you edit a secret.
 
+**`git push` to the Space rejected with `"short_description" length must be less than or equal to 60 characters`** — HF Spaces caps the `short_description` frontmatter field at 60 characters. The shipped template is 50 chars; if you customise it, keep it under 60. Edit the `README.md` in the Space's git repo, amend, and push.
+
 **The Space's first request after a long idle is slow** — Neon auto-suspends compute after ~5 min idle on the free plan. The first query takes ~300–500 ms to wake it. This is fine for hackathon load. If it's ever a problem, set `?pool_timeout=10` on the connection string or upgrade Neon (still free for the demo).
 
 **I changed the Dockerfile, now what?** — `git push` to the Space remote and the Space rebuilds automatically. Build time is ~3–5 min after the first build because pip and HF caches are reused.
