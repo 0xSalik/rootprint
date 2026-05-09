@@ -7,7 +7,7 @@ sdk: docker
 app_port: 7860
 pinned: false
 license: mit
-short_description: Tacit Knowledge OS for heritage artisans — Vault, Sanad, Ask the Hunarmand
+short_description: Tacit Knowledge OS for Kashmir's heritage artisans
 ---
 
 # Hunarmand AI
