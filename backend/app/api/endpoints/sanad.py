@@ -1,31 +1,47 @@
-"""Sanad endpoints (A2's layer).
+"""Sanad endpoints — provenance + cryptographic verification.
 
-These are thin authenticated proxies to the AI core's cryptographic
-Sanad service:
+This module unifies two patterns:
 
-    /api/v1/sanad/keys     -> AI core /sanad/keys     (creates Ed25519 keypair)
-    /api/v1/sanad/sign     -> AI core /sanad/sign     (returns signed envelope + QR)
-    /api/v1/sanad/verify   -> AI core /sanad/verify   (validates a QR string)
+  * **AI-core-backed minting & verification** (``/keys``, ``/sign``,
+    ``/verify``) — proxies to the deployed AI core service which uses
+    Ed25519 + RFC 8785 JCS canonicalisation. JWT-authenticated for the
+    minting routes; public for verification.
 
-We require a backend JWT for ``/keys`` and ``/sign`` (only the master
-themselves should mint Sanads in their name) and leave ``/verify``
-unauthenticated so any buyer can verify a QR they scanned.
+  * **DB-backed provenance lookup** (``/{sanad_id}``, ``/{sanad_id}/qr``)
+    — reads the local Postgres ``sanads`` table and renders a buyer-
+    facing detail JSON or a QR image that links to the public
+    provenance page. No auth required.
+
+We deliberately keep ``/verify`` aligned with the AI core's signing
+scheme so the verifier and the signer agree on canonicalisation. The
+local helpers in ``app.services.sanad.{crypto,qr_engine}`` are the
+implementation of the GET endpoints; they are not exposed as a second
+verify scheme.
 """
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
+import uuid
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from app.api.deps import get_current_master
 from app.clients.ai_core import AICoreClient, AICoreError, get_ai_core_client
-from app.models.models import Master
+from app.core.database import get_db
+from app.models.models import Master, Sanad
+from app.services.sanad import qr_engine
 
 log = logging.getLogger(__name__)
 router = APIRouter()
+
+
+# ── Schemas ─────────────────────────────────────────────────────────────────
 
 
 class GenerateKeysRequest(BaseModel):
@@ -45,6 +61,9 @@ class VerifyRequest(BaseModel):
     public_key_b64: Optional[str] = None
 
 
+# ── AI-core-backed minting & verification ──────────────────────────────────
+
+
 @router.post("/keys")
 async def generate_keys(
     req: GenerateKeysRequest,
@@ -52,8 +71,8 @@ async def generate_keys(
 ) -> dict:
     """Generate (or rotate) the master's Ed25519 keypair on the AI core.
 
-    The master_id is taken from the JWT — the master can only ever mint
-    keys for themselves through this endpoint.
+    The master_id is taken from the JWT — the master can only mint keys
+    for themselves.
     """
 
     client = get_ai_core_client()
@@ -69,14 +88,7 @@ async def sign_sanad(
     req: SignRequest,
     current_master: Master = Depends(get_current_master),
 ) -> dict:
-    """Sign a Sanad metadata payload.
-
-    Forwards the JWT-authenticated master's id to the AI core. The
-    payload must include the fields documented at the AI core's
-    ``/docs`` (``sanad_id``, ``piece_id``, ``craft_category``,
-    ``completed_on``, ``issued_at``, ``lineage``, ``short_summary`` are
-    required).
-    """
+    """Sign a Sanad metadata payload via the AI core's Ed25519 + JCS path."""
 
     client = get_ai_core_client()
     try:
@@ -92,7 +104,7 @@ async def sign_sanad(
 
 @router.post("/verify")
 async def verify_sanad(req: VerifyRequest) -> dict:
-    """Verify a scanned Sanad QR — public, no auth required."""
+    """Verify a scanned Sanad QR string. Public — no auth required."""
 
     client = get_ai_core_client()
     try:
@@ -103,3 +115,45 @@ async def verify_sanad(req: VerifyRequest) -> dict:
     except AICoreError as exc:
         log.warning("sanad.verify.failed err=%s", exc)
         raise HTTPException(status_code=502, detail=f"AI core error: {exc}") from exc
+
+
+# ── DB-backed provenance lookups ───────────────────────────────────────────
+
+
+@router.get("/{sanad_id}/qr")
+async def get_sanad_qr(sanad_id: str) -> Response:
+    """Render a QR PNG that links to the public provenance page."""
+
+    qr_bytes = qr_engine.generate_sanad_qr(sanad_id)
+    return Response(content=qr_bytes, media_type="image/png")
+
+
+@router.get("/{sanad_id}")
+async def get_sanad_details(sanad_id: str, db: AsyncSession = Depends(get_db)) -> dict:
+    """Return the Sanad's metadata + the issuing master's name.
+
+    The buyer-facing provenance page renders this object.
+    """
+
+    try:
+        sanad_uuid = uuid.UUID(sanad_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Invalid Sanad UUID format.") from exc
+
+    result = await db.execute(select(Sanad).where(Sanad.id == sanad_uuid))
+    sanad_record = result.scalars().first()
+    if not sanad_record:
+        raise HTTPException(status_code=404, detail="Sanad record not found.")
+
+    master_result = await db.execute(select(Master).where(Master.id == sanad_record.master_id))
+    master_record = master_result.scalars().first()
+
+    return {
+        "sanad_id": str(sanad_record.id),
+        "piece_name": sanad_record.piece_name,
+        "material_origin": sanad_record.material_origin,
+        "signature_hex": sanad_record.crypto_signature,
+        "is_public": sanad_record.is_public,
+        "artisan": master_record.name if master_record else "Unknown",
+        "metadata_json": sanad_record.metadata_json,
+    }

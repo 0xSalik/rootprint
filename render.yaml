@@ -1,0 +1,49 @@
+services:
+  - type: web
+    name: hunarmand-backend
+    env: docker
+    region: singapore
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      # --- AI core (the deployed Hugging Face Space) ---
+      - key: AI_CORE_URL
+        value: https://slimshadylol-hunarmand-ai.hf.space
+
+      # --- Database (paste Neon's pooled URL; the backend strips libpq-only params) ---
+      - key: HUNARMAND_DATABASE_URL
+        sync: false   # set in the Render dashboard
+
+      # --- Auth ---
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "10080"
+
+      # --- Embedding dimension MUST match the AI core (default 384) ---
+      - key: HUNARMAND_EMBEDDING_DIMENSIONS
+        value: "384"
+
+      # --- Inline tasks: no Redis required for the demo ---
+      - key: RUN_INLINE_TASKS
+        value: "1"
+
+      # --- CORS for the Vercel frontend ---
+      - key: BACKEND_CORS_ORIGINS
+        sync: false   # e.g. https://hunarmand.vercel.app,http://localhost:3000
+
+      # --- Commerce (A2) ---
+      - key: STRIPE_SECRET_KEY
+        value: "sk_test_mock_key_for_hackathon"
+
+      # --- S3 / R2 (only needed if you use the upload flow) ---
+      - key: S3_BUCKET
+        value: "hunarmand-vault"
+      - key: S3_ENDPOINT_URL
+        sync: false
+      - key: S3_ACCESS_KEY
+        sync: false
+      - key: S3_SECRET_KEY
+        sync: false
