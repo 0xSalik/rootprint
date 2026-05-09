@@ -43,11 +43,21 @@ End result: a live API at `https://<your-username>-<space-name>.hf.space` that y
    postgresql://hunarmand_owner:NPg_xxxx@ep-snowy-sound-xxxxxx-pooler.ap-south-1.aws.neon.tech/hunarmand?sslmode=require
    ```
 
-5. **Convert it to the async driver Hunarmand uses** by replacing `postgresql://` with `postgresql+asyncpg://` and **dropping the `?sslmode=require` suffix** (asyncpg uses `ssl=true` instead, which is the default on Neon's pooled hostname). Save the result — you'll paste it as the `HUNARMAND_DATABASE_URL` secret in step 3:
+5. **Convert it to the async driver Hunarmand uses.** Replace `postgresql://` with `postgresql+asyncpg://` and **drop the entire `?...` query string at the end** — Neon now ships with both `?sslmode=require` and `?channel_binding=require`, neither of which asyncpg understands. asyncpg negotiates TLS automatically against Neon's pooled hostname.
+
+   What you paste into the Space's secret should look like:
 
    ```
    postgresql+asyncpg://hunarmand_owner:NPg_xxxx@ep-snowy-sound-xxxxxx-pooler.ap-south-1.aws.neon.tech/hunarmand
    ```
+
+   Not like (this is what Neon hands you in the dashboard — drop the query string):
+
+   ```
+   postgresql://hunarmand_owner:NPg_xxxx@...neon.tech/hunarmand?sslmode=require&channel_binding=require
+   ```
+
+   > Newer Hunarmand builds auto-strip libpq-only query parameters and translate `sslmode=require` to asyncpg's own connect-arg, so pasting Neon's raw URL works too — but for clarity, normalise it yourself in the secret value.
 
 > **Tip.** Keep this connection string in a password manager — it's the only secret on the Neon side.
 
