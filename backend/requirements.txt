@@ -12,3 +12,6 @@ stripe
 razorpay
 qrcode[pil]
 pynacl
+gunicorn
+pytest
+httpx

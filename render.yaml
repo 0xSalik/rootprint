@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: hunarmand-api
+    env: docker
+    region: singapore # Adjust region if needed
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    plan: free # Standard free tier for hackathon
+    envVars:
+      - key: STRIPE_SECRET_KEY
+        value: "sk_test_mock_key_for_hackathon"
+      # - key: DATABASE_URL
+      #   value: "postgres://user:pass@host/db"  <-- A1 will provide this
