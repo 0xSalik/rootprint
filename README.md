@@ -1,29 +1,36 @@
-# TALIM — Hackathon Pitch
+# HUNARMAND — Hackathon Pitch
 
-**Digital Apprenticeship for Kashmir's Living Crafts.**
+**The Tacit Knowledge OS for Heritage Artisans.**
 
-This repository contains the LaTeX source and compiled PDF for the TALIM
-hackathon pitch document.
+This repository contains the LaTeX source and compiled PDF for the
+Hunarmand hackathon pitch.
 
-## What is TALIM?
+## What is Hunarmand?
 
-TALIM is an AI-powered digital apprenticeship platform that:
+Hunarmand is the first platform that treats heritage artisans the way modern
+engineering treats institutional memory — as a strategic, captureable,
+monetisable asset.
 
-1. **Captures** every Kashmiri master craftsman's lifetime of knowledge in
-   their own voice and language (TALIM Capture).
-2. **Teaches** the next generation through an interactive AI tutor with
-   stage-gated certification (TALIM Academy).
-3. **Authenticates** every piece with a cryptographic Sanad and routes
-   payment direct to the artisan, eliminating the middleman (TALIM Sanad).
+We capture the irreplaceable tacit knowledge that dies with a master
+craftsman (the unwritten techniques, supplier secrets, environmental
+tunings, decades of failed experiments) and turn it into:
 
-The name is rooted in the centuries-old Kashmiri *talim* — the encoded
-weaving notation that master weavers themselves invented to pass technique
-across generations. We are giving that invention its digital form.
+1. **Vault** — an AI-led structured craft interview produces a private,
+   artisan-owned *Craft DNA* file.
+2. **Sanad** — that knowledge becomes a verified public directory and
+   per-piece cryptographic provenance counterfeiters cannot fake.
+3. **Ustaad** — the same knowledge powers living-museum workshops that
+   tourists pay a premium for.
+4. **Bazaar** — pop-up bazaars and Heritage Bundles scale authenticity
+   into commerce.
+
+The artisan owns their knowledge. The platform makes that knowledge pay
+them.
 
 ## Files
 
-- `talim_pitch.tex` — LaTeX source.
-- `talim_pitch.pdf` — Compiled 12-page A4 pitch document.
+- `hunarmand_pitch.tex` — LaTeX source.
+- `hunarmand_pitch.pdf` — Compiled 13-page A4 pitch document.
 
 ## Build
 
@@ -33,6 +40,6 @@ sudo apt-get install -y --no-install-recommends \
     texlive-latex-extra texlive-fonts-recommended \
     texlive-fonts-extra lmodern
 
-pdflatex talim_pitch.tex
-pdflatex talim_pitch.tex   # second pass for outlines
+pdflatex hunarmand_pitch.tex
+pdflatex hunarmand_pitch.tex   # second pass for outlines
 ```
