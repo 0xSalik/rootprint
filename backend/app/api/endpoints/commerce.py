@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 import stripe
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.database import get_db
 from app.models.models import Workshop, Booking, Bundle, Order, Master
@@ -60,11 +60,15 @@ async def create_booking(req: BookingRequest, db: AsyncSession = Depends(get_db)
         raise HTTPException(status_code=404, detail="Workshop not found.")
         
     try:
-        # Handle simple dates like "2026-05-15T10:00:00"
+        # Handle simple dates like "2026-05-15T10:00:00" or full ISO with Z.
         dt = datetime.fromisoformat(req.date.replace("Z", "+00:00"))
     except ValueError:
-        # Fallback to current time if parsing fails for mock requests
         dt = datetime.utcnow()
+    # `bookings.booking_date` is TIMESTAMP WITHOUT TIME ZONE; asyncpg will
+    # refuse a tz-aware datetime against it. Convert to UTC then strip
+    # the tzinfo so it lands cleanly.
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
 
     new_booking = Booking(
         workshop_id=ws_uuid,
