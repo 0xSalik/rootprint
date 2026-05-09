@@ -11,6 +11,7 @@ import {
 
 import "./globals.css";
 import { SiteNav } from "@/components/site/site-nav";
+import { AuthProvider } from "@/lib/auth";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -85,8 +86,10 @@ export default function RootLayout({
       className={`${cormorant.variable} ${baskerville.variable} ${jost.variable} ${lora.variable} ${plexMono.variable} ${nastaliq.variable} ${caveat.variable} h-full antialiased`}
     >
       <body className="theme-harud bg-parchment text-ink min-h-full font-body flex flex-col">
-        <SiteNav />
-        {children}
+        <AuthProvider>
+          <SiteNav />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

@@ -4,6 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { useAuth } from "@/lib/auth";
+
 /* -------------------------------------------------------------------------
  * <SiteNav />
  *
@@ -31,8 +33,12 @@ const NAV_LINKS: Array<{ href: string; label: string }> = [
 
 export function SiteNav() {
   const pathname = usePathname();
+  const auth = useAuth();
   const [scrolled, setScrolled] = React.useState(false);
   const [open, setOpen] = React.useState(false);
+
+  const dashboardHref = auth.role === "artisan" ? "/studio" : "/account";
+  const dashboardLabel = auth.role === "artisan" ? "Studio" : "Account";
 
   /* Scroll listener — triggers the background fade once the user has
    * moved past 24 px from the top of the document. */
@@ -99,25 +105,55 @@ export function SiteNav() {
           })}
         </nav>
 
-        {/* Right CTAs (desktop) */}
+        {/* Right CTAs (desktop) — auth-aware */}
         <div className="hidden md:flex items-center gap-3">
-          <Link
-            href="/artisan/abdul-rashid-bhat"
-            className={[
-              "inline-flex items-center justify-center px-4 py-2 rounded-craft border font-ui text-[13px] tracking-wide transition-colors min-h-9",
-              scrolled
-                ? "border-line text-ink hover:border-brand hover:text-brand"
-                : "border-ink-inverse/35 text-ink-inverse hover:border-gold-light hover:text-gold-light",
-            ].join(" ")}
-          >
-            For Artisans
-          </Link>
-          <Link
-            href="/craft/pashmina"
-            className="inline-flex items-center justify-center px-4 py-2 rounded-craft bg-brand hover:bg-brand-light text-ink-inverse font-ui text-[13px] tracking-wide transition-colors min-h-9"
-          >
-            Book an Experience
-          </Link>
+          {auth.hydrated && auth.token ? (
+            <>
+              <Link
+                href={dashboardHref}
+                className={[
+                  "inline-flex items-center justify-center px-4 py-2 rounded-craft border font-ui text-[13px] tracking-wide transition-colors min-h-9",
+                  scrolled
+                    ? "border-line text-ink hover:border-brand hover:text-brand"
+                    : "border-ink-inverse/35 text-ink-inverse hover:border-gold-light hover:text-gold-light",
+                ].join(" ")}
+              >
+                {dashboardLabel}
+              </Link>
+              <button
+                type="button"
+                onClick={auth.logout}
+                className={[
+                  "inline-flex items-center justify-center px-4 py-2 rounded-craft border font-ui text-[13px] tracking-wide transition-colors min-h-9",
+                  scrolled
+                    ? "border-line text-ink-faded hover:border-brand hover:text-brand"
+                    : "border-ink-inverse/30 text-ink-inverse/85 hover:border-gold-light hover:text-gold-light",
+                ].join(" ")}
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className={[
+                  "inline-flex items-center justify-center px-4 py-2 rounded-craft border font-ui text-[13px] tracking-wide transition-colors min-h-9",
+                  scrolled
+                    ? "border-line text-ink hover:border-brand hover:text-brand"
+                    : "border-ink-inverse/35 text-ink-inverse hover:border-gold-light hover:text-gold-light",
+                ].join(" ")}
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center px-4 py-2 rounded-craft bg-brand hover:bg-brand-light text-ink-inverse font-ui text-[13px] tracking-wide transition-colors min-h-9"
+              >
+                Try the demo
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Hamburger (mobile) */}
@@ -183,18 +219,38 @@ export function SiteNav() {
             })}
 
             <div className="mt-7 grid grid-cols-1 gap-3">
-              <Link
-                href="/artisan/abdul-rashid-bhat"
-                className="inline-flex items-center justify-center px-4 py-3 rounded-craft border border-line text-ink font-ui text-sm tracking-wide min-h-11"
-              >
-                For Artisans
-              </Link>
-              <Link
-                href="/craft/pashmina"
-                className="inline-flex items-center justify-center px-4 py-3 rounded-craft bg-brand text-ink-inverse font-ui text-sm tracking-wide min-h-11"
-              >
-                Book an Experience
-              </Link>
+              {auth.hydrated && auth.token ? (
+                <>
+                  <Link
+                    href={dashboardHref}
+                    className="inline-flex items-center justify-center px-4 py-3 rounded-craft border border-line text-ink font-ui text-sm tracking-wide min-h-11"
+                  >
+                    {dashboardLabel}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={auth.logout}
+                    className="inline-flex items-center justify-center px-4 py-3 rounded-craft border border-line text-ink-faded font-ui text-sm tracking-wide min-h-11"
+                  >
+                    Sign out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center justify-center px-4 py-3 rounded-craft border border-line text-ink font-ui text-sm tracking-wide min-h-11"
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center justify-center px-4 py-3 rounded-craft bg-brand text-ink-inverse font-ui text-sm tracking-wide min-h-11"
+                  >
+                    Try the demo
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
         </aside>
