@@ -50,11 +50,104 @@ RUN_INLINE_TASKS=0 uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 ## For Track B (Frontend Team)
 
-### API endpoints overview
+### Live API
 
-The backend is FastAPI. Interactive docs: `http://127.0.0.1:8000/docs`.
+* **Base URL (Render):** `https://hunarmand-backend.onrender.com`
+* **Interactive docs:** `https://hunarmand-backend.onrender.com/docs`
+* **OpenAPI JSON:** `https://hunarmand-backend.onrender.com/api/v1/openapi.json`
 
-**The original A1 contract is unchanged.** New endpoints are additive.
+In Vercel, set `NEXT_PUBLIC_HUNARMAND_API=https://hunarmand-backend.onrender.com`.
+
+### Conventions
+
+* All v1 paths live under `/api/v1`.
+* JSON body for all POST/PUT bodies; multipart only on `/media/presigned-url` upload.
+* `Authorization: Bearer <jwt>` for any endpoint marked **JWT** below.
+* Every list endpoint accepts `?limit=20&offset=0` and returns
+  `{ "items": [...], "total": N, "limit": L, "offset": O }`.
+* Every UUID-bearing field is a string in JSON.
+
+### Endpoint reference
+
+#### Auth (mock OTP — `123456` always works)
+| Method | Path | Auth | Body / Query |
+|---|---|---|---|
+| POST | `/api/v1/auth/send-otp` | — | `{ "phone": "+91…" }` |
+| POST | `/api/v1/auth/verify-otp` | — | `{ "phone": "+91…", "otp": "123456" }` → `{ access_token, token_type }` |
+| GET  | `/api/v1/auth/me` | JWT | own profile |
+| GET  | `/api/v1/auth/masters` | — | list of all masters (legacy) |
+
+#### Masters (artisan directory)
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET  | `/api/v1/masters` | — | `?q=<text>&location=<text>&limit=&offset=` |
+| GET  | `/api/v1/masters/{id}` | — | public profile |
+| GET  | `/api/v1/masters/me/full` | JWT | own profile incl. phone |
+| PUT  | `/api/v1/masters/me` | JWT | `{ name?, lineage_id?, workshop_location?, bio? }` |
+
+#### Vaults (Capture)
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| POST | `/api/v1/media/presigned-url` | JWT | `{ filename, content_type }` → `{ url, s3_key, vault_id }` |
+| POST | `/api/v1/media/process-webhook` | JWT | `{ vault_id, s3_key }` |
+| GET  | `/api/v1/vaults/me` | JWT | list my vaults (paginated) |
+| GET  | `/api/v1/vaults/{id}` | JWT | full vault + Craft DNA summary |
+| GET  | `/api/v1/vaults/{id}/status` | JWT | poll while processing |
+
+#### Discovery
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET  | `/api/v1/feed` | — | homepage aggregate (top 6 of each resource) |
+| GET  | `/api/v1/search/techniques` | — | `?query=<text>&limit=5` |
+| POST | `/api/v1/ask` | — | `{ master_id, question, answer_language?, top_k? }` |
+
+#### Sanad (provenance)
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET  | `/api/v1/sanad` | — | public listing (`?master_id=` filter optional) |
+| POST | `/api/v1/sanad/keys` | JWT | mint master keypair via AI core |
+| POST | `/api/v1/sanad/sign` | JWT | sign a payload, returns QR + signature |
+| POST | `/api/v1/sanad/verify` | — | `{ qr_string }` → `{ valid, … }` |
+| GET  | `/api/v1/sanad/{id}` | — | DB-backed Sanad detail |
+| GET  | `/api/v1/sanad/{id}/qr` | — | PNG image (`Content-Type: image/png`) |
+
+#### Workshops (Ustaad)
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET    | `/api/v1/workshops` | — | `?master_id=&is_active=true&limit=&offset=` |
+| GET    | `/api/v1/workshops/{id}` | — | detail incl. master name |
+| POST   | `/api/v1/workshops` | JWT (master) | `{ format, price, duration_mins, description? }` |
+| PUT    | `/api/v1/workshops/{id}` | JWT (owner) | partial update |
+| DELETE | `/api/v1/workshops/{id}` | JWT (owner) | soft delete (`is_active=false`) |
+
+#### Bookings (Ustaad buyer-side)
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET  | `/api/v1/bookings/me` | — (`?phone=`) | list bookings made under that phone |
+| GET  | `/api/v1/bookings/{id}` | — (`?phone=`) | single booking detail |
+| POST | `/api/v1/commerce/book` | — | (legacy) `{ workshop_id, user_phone, date, participants }` |
+
+#### Bundles (Bazaar)
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET  | `/api/v1/bundles` | — | listing |
+| GET  | `/api/v1/bundles/{id}` | — | detail incl. linked Sanads |
+| POST | `/api/v1/bundles` | JWT | `{ name, price, description?, sanad_ids[] }` |
+
+#### Orders (Bazaar buyer-side)
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET  | `/api/v1/orders/me` | — (`?phone=`) | list orders for that phone |
+| GET  | `/api/v1/orders/{id}` | — (`?phone=`) | order detail incl. bundle name |
+| POST | `/api/v1/commerce/checkout` | — | (legacy) `{ bundle_id, user_phone }` |
+
+#### Health
+| Method | Path | Notes |
+|---|---|---|
+| GET  | `/healthz` | reports backend status + AI-core reachability |
+| GET  | `/` | API metadata |
+
+**The original A1 contract is unchanged.** Everything new is additive.
 
 ### 1. Authentication flow (Phone OTP)
 
