@@ -8,6 +8,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..extractor import get_extractor
+from ..fallbacks import build_extract_fallback, run_with_fallback
 from ..schemas.craft_dna import CraftDNA
 
 router = APIRouter(prefix="/extract", tags=["extract"])
@@ -32,8 +33,7 @@ class ExtractResponse(BaseModel):
     vulnerability_index: float
 
 
-@router.post("", response_model=ExtractResponse)
-async def extract(req: ExtractRequest) -> ExtractResponse:
+async def _real_extract(req: ExtractRequest) -> ExtractResponse:
     extractor = get_extractor()
     dna = await extractor.extract(
         master_id=req.master_id,
@@ -42,4 +42,20 @@ async def extract(req: ExtractRequest) -> ExtractResponse:
     )
     return ExtractResponse(
         craft_dna=dna, vulnerability_index=dna.knowledge_vulnerability_index()
+    )
+
+
+def _fallback(req: ExtractRequest) -> ExtractResponse:
+    dna = build_extract_fallback(req.master_id, req.primary_language)
+    return ExtractResponse(
+        craft_dna=dna, vulnerability_index=dna.knowledge_vulnerability_index()
+    )
+
+
+@router.post("", response_model=ExtractResponse)
+async def extract(req: ExtractRequest) -> ExtractResponse:
+    return await run_with_fallback(
+        coro=_real_extract(req),
+        fallback=lambda: _fallback(req),
+        policy="extract",
     )

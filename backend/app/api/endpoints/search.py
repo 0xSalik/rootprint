@@ -24,6 +24,7 @@ from sqlalchemy.future import select
 from app.clients.ai_core import AICoreClient, AICoreError, get_ai_core_client
 from app.core.config import settings
 from app.core.database import get_db
+from app.fallbacks import build_search_fallback, run_with_fallback
 from app.models.models import CraftDNA
 
 log = logging.getLogger(__name__)
@@ -95,24 +96,12 @@ class _Lcg:
         return (self.state / 0x7FFFFFFF) * 2.0 - 1.0
 
 
-@router.get("/techniques", response_model=List[SearchResult])
-async def search_techniques(
+async def _real_search(
+    *,
     query: str,
-    limit: int = 5,
-    db: AsyncSession = Depends(get_db),
-):
-    """
-    Semantic search using pgvector.
-
-    - Embeds the query via the AI core (``/embed``).
-    - Orders CraftDNA rows by L2 distance (``<->``).
-    - Returns the same shape A1's mocked endpoint did so the frontend
-      doesn't need to change.
-    """
-
-    if not query:
-        raise HTTPException(status_code=400, detail="Query cannot be empty")
-
+    limit: int,
+    db: AsyncSession,
+) -> list[dict]:
     client = get_ai_core_client()
     query_vector = await _embed_query(client, query)
 
@@ -125,14 +114,11 @@ async def search_techniques(
         .order_by(CraftDNA.embedding.l2_distance(query_vector))
         .limit(limit)
     )
-
     result = await db.execute(stmt)
     rows = result.all()
 
     out: list[dict] = []
     for craft_dna, distance in rows:
-        # L2 distance is in [0, 2] for normalised vectors. Convert to a
-        # 0..1 similarity score.
         similarity = max(0.0, min(1.0, 1.0 - (float(distance) / 2.0)))
         out.append(
             {
@@ -143,4 +129,35 @@ async def search_techniques(
                 "similarity_score": similarity,
             }
         )
+    # If the seeded DB is empty, surface curated content so the
+    # frontend has results to render.
+    if not out:
+        return build_search_fallback(query=query, limit=limit)
     return out
+
+
+@router.get("/techniques", response_model=List[SearchResult])
+async def search_techniques(
+    query: str,
+    limit: int = 5,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Semantic search using pgvector.
+
+    Embeds the query via the AI core (``/embed``) and orders CraftDNA
+    rows by L2 distance. If the AI core is slow or pgvector is empty
+    we surface curated technique results so the frontend never has to
+    render an empty list.
+
+    Response shape locked by ``test_search_contract.py``.
+    """
+
+    if not query:
+        raise HTTPException(status_code=400, detail="Query cannot be empty")
+
+    return await run_with_fallback(
+        coro=_real_search(query=query, limit=limit, db=db),
+        fallback=lambda: build_search_fallback(query=query, limit=limit),
+        policy="search",
+    )
