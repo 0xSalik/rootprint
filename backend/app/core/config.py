@@ -18,6 +18,7 @@ class Settings(BaseSettings):
         raise ValueError(v)
 
     # Postgres Database
+    DATABASE_URL: str | None = None
     POSTGRES_SERVER: str = "localhost"
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "postgres"
@@ -26,6 +27,9 @@ class Settings(BaseSettings):
     
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
+        if self.DATABASE_URL:
+            # asyncpg does not support the 'sslmode' query parameter
+            return self.DATABASE_URL.replace("?sslmode=require", "")
         # Using asyncpg driver for asynchronous DB operations
         if self.POSTGRES_PASSWORD:
             return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
@@ -44,8 +48,12 @@ class Settings(BaseSettings):
     # AI Pipeline
     OPENAI_API_KEY: str = ""
 
+    # Commerce
+    STRIPE_SECRET_KEY: str | None = None
+
     class Config:
         case_sensitive = True
         env_file = ".env"
+        extra = "ignore"
 
 settings = Settings()
