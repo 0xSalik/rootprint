@@ -161,9 +161,27 @@ export default function MintSanadPage() {
         }
       }
 
+      // Always mint a fresh (sanad_id, piece_id) pair at submit time.
+      // The form fields are auto-populated for display, but the AI core
+      // enforces a unique index on sanad_id_public — reusing the field's
+      // stale value across two submits would 500 the second mint. We
+      // also push the freshly-minted ids back into form state so the
+      // visible inputs reflect what we actually signed.
+      const sanadIdForThisMint = generateSanadId(
+        auth.master?.lineage_id ?? "SND",
+      );
+      const pieceIdForThisMint = generatePieceId(
+        auth.master?.lineage_id ?? "PCE",
+      );
+      setForm((prev) => ({
+        ...prev,
+        sanad_id: sanadIdForThisMint,
+        piece_id: pieceIdForThisMint,
+      }));
+
       const payload: SanadSignPayload = {
-        sanad_id: form.sanad_id.trim() || generateSanadId("SND"),
-        piece_id: form.piece_id.trim() || generatePieceId("PCE"),
+        sanad_id: sanadIdForThisMint,
+        piece_id: pieceIdForThisMint,
         craft_category: form.craft_category,
         technique_names: form.technique_names
           .split(",")
@@ -352,23 +370,23 @@ function FormPanel({
             />
           </Field>
 
-          <Field label="Piece ID">
+          <Field label="Piece ID (auto)">
             <input
               type="text"
               value={form.piece_id}
-              onChange={(e) => setForm({ ...form, piece_id: e.target.value })}
-              className="w-full rounded-craft border border-line bg-paper px-3.5 py-2.5 font-mono text-[13px] text-ink outline-none focus:border-brand"
-              placeholder="KNH-2025-0042"
+              readOnly
+              className="w-full cursor-not-allowed rounded-craft border border-line bg-parchment px-3.5 py-2.5 font-mono text-[13px] text-ink-faded outline-none"
+              placeholder="auto-generated on mint"
             />
           </Field>
 
-          <Field label="Sanad ID">
+          <Field label="Sanad ID (auto)">
             <input
               type="text"
               value={form.sanad_id}
-              onChange={(e) => setForm({ ...form, sanad_id: e.target.value })}
-              className="w-full rounded-craft border border-line bg-paper px-3.5 py-2.5 font-mono text-[13px] text-ink outline-none focus:border-brand"
-              placeholder="KNH-PSH-2025-0042"
+              readOnly
+              className="w-full cursor-not-allowed rounded-craft border border-line bg-parchment px-3.5 py-2.5 font-mono text-[13px] text-ink-faded outline-none"
+              placeholder="auto-generated on mint"
             />
           </Field>
 
