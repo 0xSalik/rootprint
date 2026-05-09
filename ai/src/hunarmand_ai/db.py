@@ -173,14 +173,41 @@ async def session_scope() -> AsyncIterator[AsyncSession]:
 
 
 async def create_all_tables() -> None:
-    """Create tables (and the pgvector extension) for development.
+    """Create AI-core-owned tables (and the pgvector extension).
 
-    Production uses Alembic — this is the hackathon-fast path.
+    Production-on-the-shared-Neon-DB note
+    --------------------------------------
+
+    The Hunarmand backend service owns the canonical schemas for
+    ``masters`` and ``sanads`` (Track-A's models). The AI core
+    declares ``MasterRow`` only as a SQLAlchemy ORM target for FK
+    constraints (it is never read or written by AI-core code), and
+    ``SanadRow`` lives under a non-colliding name (``ai_sanads``) so
+    the two services can share the same Postgres database.
+
+    To avoid colliding with the backend's alembic migrations:
+
+    * ``masters`` is in the skip-list — the backend's alembic creates
+      it. AI-core FKs to ``masters.id`` resolve against that.
+    * Every other AI-core table (``master_keys``, ``vault_chunks``,
+      ``interview_*``, ``craft_dna_records``, ``ai_sanads``) is
+      created here on first boot.
+
+    Set ``HUNARMAND_SKIP_AUTO_MIGRATE=1`` to disable this entirely if
+    you'd rather drive every table through alembic.
     """
 
     from sqlalchemy import text  # local import avoids polluting top-level
     from .models.base import Base  # noqa: WPS433 — circular at import time
 
+    # Tables owned by the backend service when sharing a DB.
+    skip = {"masters"}
+
     async with _engine.begin() as conn:  # type: ignore[union-attr]
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
-        await conn.run_sync(Base.metadata.create_all)
+        ai_only_tables = [
+            t for t in Base.metadata.sorted_tables if t.name not in skip
+        ]
+        await conn.run_sync(
+            lambda c: Base.metadata.create_all(c, tables=ai_only_tables)
+        )
