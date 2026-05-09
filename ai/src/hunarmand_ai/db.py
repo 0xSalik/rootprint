@@ -1,23 +1,132 @@
-"""Async SQLAlchemy + pgvector wiring."""
+"""Async SQLAlchemy + pgvector wiring.
+
+URL normalisation
+-----------------
+
+asyncpg does not understand libpq-only query parameters
+(``sslmode``, ``channel_binding``, ``application_name``, etc.).
+SQLAlchemy passes the URL straight through to asyncpg, which then
+mis-parses the database name and dies with::
+
+    asyncpg.exceptions.InvalidCatalogNameError:
+      database "neondb&channel_binding=require" does not exist
+
+Neon's connection strings now ship with ``?sslmode=require&channel_binding=require``
+out of the box, so every new teammate hits this. We sanitise the URL
+on startup:
+
+* drop libpq-only query params,
+* translate ``sslmode=require|verify-ca|verify-full`` -> asyncpg's
+  ``connect_args={"ssl": "require"}``,
+* auto-promote bare ``postgresql://`` to ``postgresql+asyncpg://`` so
+  pasting Neon's raw URL Just Works.
+"""
 
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Any
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
+import structlog
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from .config import get_settings
 
+log = structlog.get_logger(__name__)
+
+
+_LIBPQ_ONLY_PARAMS: frozenset[str] = frozenset(
+    {
+        "sslmode",
+        "channel_binding",
+        "application_name",
+        "connect_timeout",
+        "options",
+        "passfile",
+        "service",
+        "sslcompression",
+        "sslcert",
+        "sslkey",
+        "sslrootcert",
+        "sslcrl",
+        "gssencmode",
+        "krbsrvname",
+        "target_session_attrs",
+    }
+)
+
+
+def normalize_postgres_url(url: str) -> tuple[str, dict[str, Any]]:
+    """Return a ``(url, connect_args)`` pair that asyncpg can consume."""
+
+    if not url:
+        return url, {}
+
+    parsed = urlparse(url)
+    scheme = parsed.scheme
+
+    # Auto-promote bare drivers to asyncpg.
+    if scheme == "postgresql":
+        scheme = "postgresql+asyncpg"
+    elif scheme == "postgres":  # legacy alias
+        scheme = "postgresql+asyncpg"
+
+    # Only do anything for postgres URLs.
+    if not scheme.startswith("postgresql"):
+        return url, {}
+
+    params = dict(parse_qsl(parsed.query, keep_blank_values=False))
+
+    connect_args: dict[str, Any] = {}
+    sslmode = params.pop("sslmode", None)
+    if sslmode in {"require", "verify-ca", "verify-full"}:
+        connect_args["ssl"] = "require"
+    elif sslmode == "prefer":
+        connect_args["ssl"] = "prefer"
+    elif sslmode == "disable":
+        connect_args["ssl"] = False
+
+    stripped: list[str] = []
+    for key in list(params):
+        if key in _LIBPQ_ONLY_PARAMS:
+            params.pop(key)
+            stripped.append(key)
+
+    new_query = urlencode(params)
+    new_url = urlunparse(
+        (
+            scheme,
+            parsed.netloc,
+            parsed.path,
+            parsed.params,
+            new_query,
+            parsed.fragment,
+        )
+    )
+
+    if stripped or scheme != parsed.scheme:
+        log.info(
+            "db.url.normalized",
+            scheme_changed=scheme != parsed.scheme,
+            stripped_libpq_params=stripped,
+            translated_sslmode=sslmode,
+        )
+
+    return new_url, connect_args
+
 
 def _build_engine() -> tuple[object, async_sessionmaker[AsyncSession]]:
     settings = get_settings()
+    url, connect_args = normalize_postgres_url(settings.database_url)
     engine = create_async_engine(
-        settings.database_url,
+        url,
         echo=False,
         pool_pre_ping=True,
         pool_size=10,
         max_overflow=20,
+        connect_args=connect_args,
     )
     factory = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
     return engine, factory
