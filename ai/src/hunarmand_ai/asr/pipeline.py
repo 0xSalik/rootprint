@@ -22,6 +22,7 @@ from .ai4bharat_provider import AI4BharatProvider
 from .base import ASRProviderError, ASRUnavailableError
 from .bhashini_provider import BhashiniProvider
 from .groq_provider import GroqWhisperProvider
+from .hf_inference_provider import HFInferenceProvider
 from .manual_provider import ManualProvider
 from .translator import Translator, get_translator
 from .whisper_provider import WhisperProvider
@@ -40,6 +41,7 @@ class ASRPipeline:
             AsrProvider.BHASHINI.value: BhashiniProvider(),
             AsrProvider.AI4BHARAT.value: AI4BharatProvider(),
             AsrProvider.GROQ.value: GroqWhisperProvider(),
+            AsrProvider.HF_INFERENCE.value: HFInferenceProvider(),
             AsrProvider.WHISPER.value: WhisperProvider(),
             AsrProvider.MANUAL.value: ManualProvider(),
         }

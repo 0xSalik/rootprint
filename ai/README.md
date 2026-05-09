@@ -113,9 +113,10 @@ The fallback ladder (configurable via `HUNARMAND_ASR_LADDER`) is:
 
 1. **Bhashini ULCA** — Government of India's national language platform. First-class Kashmiri (`ks`) ASR. Two-stage auth (model resolution → inference). Free for non-commercial use; requires `BHASHINI_API_KEY` + `BHASHINI_USER_ID`.
 2. **AI4Bharat IndicWhisper / IndicConformer** — open-source, fine-tuned for 36 Indic languages incl. `ks`. Run via your own HF Inference Endpoint or self-hosted shim; configure via `AI4BHARAT_INFERENCE_URL`.
-3. **Groq Whisper-large-v3-turbo** — runs OpenAI Whisper on Groq's hardware, **free tier with very low latency**. OpenAI-compatible API at `https://api.groq.com/openai/v1`. Get a free key at [console.groq.com](https://console.groq.com/keys). **Default free-tier ASR for the hackathon.**
-4. **OpenAI Whisper-large-v3** (`whisper-1`) — highest baseline quality, paid. Kashmiri routed via Urdu acoustic with a Kashmiri-craft-vocabulary prompt.
-5. **Manual** — facilitator types as the master speaks. Always available, `confidence=1.0` because it is canonical ground truth.
+3. **Groq Whisper-large-v3-turbo** — runs OpenAI Whisper on Groq's hardware, **free tier with very low latency**. OpenAI-compatible API at `https://api.groq.com/openai/v1`. Get a free key at [console.groq.com](https://console.groq.com/keys). **Default free-tier ASR.**
+4. **HF Inference Whisper-large-v3** — runs Whisper on Hugging Face's free Inference API. **Uses the same HF account as your Space deployment** — zero extra signup. Generate a read-only token at [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) and set `HF_API_TOKEN`. Recommended fallback when Groq sign-in is having issues.
+5. **OpenAI Whisper-large-v3** (`whisper-1`) — highest baseline quality, paid. Kashmiri routed via Urdu acoustic with a Kashmiri-craft-vocabulary prompt.
+6. **Manual** — facilitator types as the master speaks. Always available, `confidence=1.0` because it is canonical ground truth.
 
 The pipeline accepts the first attempt that clears `ACCEPT_CONFIDENCE` (0.65). If everything is below threshold, it returns the highest-confidence attempt with `fallback_used=True` so the operator can re-record or correct.
 
