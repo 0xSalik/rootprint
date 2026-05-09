@@ -19,10 +19,19 @@ The demo backend uses a mock OTP. Any phone number signs in; the OTP is always `
 
 | Account | Phone | OTP | Lands on | Sees |
 |---|---|---|---|---|
-| Artisan (Mohammad Yusuf, 4th-gen Kanihama pashmina master, seeded by `backend/scripts/reset_demo.py`) | `+919999999999` | `123456` | `/studio` | own workshops, vault sessions, issued Sanads, profile editor |
+| Artisan (Mohammad Yusuf Sheikh, 4th-gen Kanihama pashmina master) | `+919999999999` | `123456` | `/studio` | own workshops, vault sessions, issued Sanads, profile editor |
 | Patron (buyer / collector) | `+918888888888` | `123456` | `/account` | own bookings, own orders, browse links |
 
-Both accounts can navigate the entire public surface (`/`, `/bazaar`, `/workshops`, `/sanad/*`, `/artisan/*`, `/craft/*`). The phone number determines the default dashboard after login. After signing in as the artisan and going to `/studio/workshops` you can add, hide, or delete workshops live against the Render backend.
+The full directory of eighteen artisans (three per craft) is seeded
+into Neon by `hunarmand/scripts/seed-backend.mts`. Each master is
+addressable by their own deterministic phone number; the OTP is the
+same `123456` for every account. The seeded set covers every
+craft (papier-mâché, pashmina, sozni, walnut carving, hand-knotted
+carpet, khatamband) and produces fifty-four workshops between them.
+You can sign in as any of them; visit `https://hunarmand-backend.onrender.com/api/v1/masters?limit=20`
+to see the list.
+
+Both accounts can navigate the entire public surface (`/`, `/bazaar`, `/workshops`, `/sanad/*`, `/artisan/*`, `/craft/*`). The phone number determines the default dashboard after login. After signing in as the artisan and going to `/studio/workshops` you can add, hide, or delete workshops live against the Render backend, and they appear immediately in the "Live additions" strip at the bottom of `/workshops`.
 
 To submit a booking flow end-to-end:
 

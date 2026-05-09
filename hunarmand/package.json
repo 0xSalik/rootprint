@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed:check": "node --experimental-strip-types --no-warnings scripts/seed-check.mts"
+    "seed:check": "node --experimental-strip-types --no-warnings scripts/seed-check.mts",
+    "seed:backend": "node --experimental-strip-types --no-warnings scripts/seed-backend.mts"
   },
   "dependencies": {
     "@fontsource/cormorant-garamond": "^5.2.11",
