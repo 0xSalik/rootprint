@@ -18,6 +18,7 @@ import { LandingFooter } from "@/components/landing/landing-footer";
 
 import { SeasonPills } from "@/components/workshops/season-pill";
 import { WorkshopCard } from "@/components/workshops/workshop-card";
+import { LiveAdditions } from "@/components/workshops/live-additions";
 
 /* -------------------------------------------------------------------------
  * /workshops — Workshop Discovery
@@ -131,6 +132,9 @@ export default async function WorkshopsPage({ searchParams }: WorkshopsPageProps
           </>
         )}
       </section>
+
+      {/* ============== LIVE ADDITIONS (backend) =============== */}
+      {filterSeason ? null : <LiveAdditions />}
 
       <LandingFooter />
     </>
