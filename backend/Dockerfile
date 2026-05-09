@@ -28,13 +28,18 @@ COPY --chown=user pyproject.toml ./
 COPY --chown=user app ./app
 COPY --chown=user alembic ./alembic
 COPY --chown=user alembic.ini ./
+COPY --chown=user start.sh ./
 COPY --chown=user HANDOVER.md ./
 
-RUN pip install --user --upgrade pip && pip install --user -e .
+RUN pip install --user --upgrade pip && pip install --user -e . \
+ && chmod +x /home/user/app/start.sh
 
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s \
     CMD curl -fsS http://localhost:8000/healthz || exit 1
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+# start.sh runs `alembic upgrade head` before launching uvicorn so a
+# fresh deploy picks up pending migrations automatically. See start.sh
+# for failure-mode behaviour.
+CMD ["./start.sh"]
