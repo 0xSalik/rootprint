@@ -27,6 +27,14 @@ This package owns:
 | `sanad/` | Ed25519 keypair lifecycle (encrypted at rest), RFC 8785 JSON canonicalisation, signing, offline-verifiable JWS-compact QR payload. |
 | `routers/` | FastAPI routers wiring all of the above. |
 
+## Deploying for the demo
+
+For the hackathon, the team is deploying this on **Hugging Face Spaces + Neon
+(both free, no credit card)** with a Vercel frontend. Step-by-step guide:
+[`DEPLOY.md`](./DEPLOY.md). End result is a public API at
+`https://<your-username>-hunarmand-ai.hf.space` that the Vercel frontend
+talks to with no auth proxy.
+
 ## Quick start
 
 ```bash
