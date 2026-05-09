@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hunarmand-backend"
+version = "0.1.0"
+description = "Hunarmand backend API gateway — auth, S3 uploads, semantic search, Sanad, commerce"
+readme = "HANDOVER.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Team Hunarmand" }]
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.6.0",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30.0",
+    "pgvector>=0.3.6",
+    "alembic>=1.14.0",
+    "boto3>=1.35.0",
+    "celery>=5.4.0",
+    "redis>=5.2.0",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "ffmpeg-python>=0.2.0",
+    "httpx>=0.27.2",
+    "tenacity>=9.0.0",
+    "structlog>=24.4.0",
+    "python-multipart>=0.0.12",
+    "python-dotenv>=1.0.1",
+    "pynacl>=1.5.0",
+    "qrcode[pil]>=8.0",
+    "stripe>=11.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.3",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.7.4",
+    "respx>=0.21.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

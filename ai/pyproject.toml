@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hunarmand-ai"
+version = "0.1.0"
+description = "Hunarmand — AI core: Vault interviewer, Craft DNA extractor, ASR pipeline, RAG, and cryptographic Sanad service"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Team Hunarmand" }]
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.6.0",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30.0",
+    "pgvector>=0.3.6",
+    "alembic>=1.14.0",
+    "openai>=1.54.0",
+    "anthropic>=0.39.0",
+    "httpx>=0.27.2",
+    "tenacity>=9.0.0",
+    "structlog>=24.4.0",
+    "python-multipart>=0.0.12",
+    "pynacl>=1.5.0",
+    "qrcode[pil]>=8.0",
+    "Pillow>=11.0.0",
+    "rfc8785>=0.1.4",
+    "rich>=13.9.4",
+    "typer>=0.13.0",
+    "numpy>=2.1.3",
+    "tiktoken>=0.8.0",
+    "python-dotenv>=1.0.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.3",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "ruff>=0.7.4",
+    "mypy>=1.13.0",
+    "respx>=0.21.1",
+]
+# Truly free embedding path — runs sentence-transformers locally with no
+# API. ~1GB of dependencies (PyTorch + transformers); only install if you
+# choose ``HUNARMAND_EMBEDDING_PROVIDER=local``.
+local-embeddings = [
+    "sentence-transformers>=3.3.0",
+    "torch>=2.5.0",
+]
+
+[project.scripts]
+hunarmand-ai = "hunarmand_ai.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-ra -q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+plugins = ["pydantic.mypy"]
