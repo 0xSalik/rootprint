@@ -1,7 +1,9 @@
 import logging
+import traceback
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.api.api import api_router
 from app.clients.ai_core import AICoreClient, AICoreError
@@ -35,6 +37,36 @@ if _cors_origins:
     )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+
+@app.exception_handler(Exception)
+async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Last-resort handler so the browser sees a real error message
+    (with CORS headers) instead of a raw uvicorn 500.
+
+    Without this, an exception that escapes a route makes Starlette
+    return ``Internal Server Error`` as text/plain *outside* the
+    middleware chain, so CORSMiddleware never tags the response and
+    the browser shows ``CORS Missing`` on the network tab. Logging the
+    full traceback here also makes the actual cause visible in Render
+    logs (the previous ``log.warning('... err=%s', exc)`` pattern only
+    captured the str of the exception, hiding the stacktrace).
+    """
+
+    log.exception(
+        "backend.unhandled_exception path=%s method=%s",
+        request.url.path,
+        request.method,
+    )
+    detail = f"{type(exc).__name__}: {exc}"
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "Internal Server Error",
+            "error": detail,
+            "traceback": traceback.format_exc().splitlines()[-12:],
+        },
+    )
 
 
 @app.get("/")
