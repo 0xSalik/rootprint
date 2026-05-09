@@ -80,7 +80,7 @@ class Sanad(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     master_id = Column(UUID(as_uuid=True), ForeignKey("masters.id"), nullable=False)
-    craft_dna_id = Column(UUID(as_uuid=True), ForeignKey("craft_dnas.id"), nullable=False)
+    craft_dna_id = Column(UUID(as_uuid=True), ForeignKey("craft_dnas.id"), nullable=True)
     
     piece_name = Column(String, nullable=False)
     material_origin = Column(String)
