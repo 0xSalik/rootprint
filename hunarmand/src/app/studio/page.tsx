@@ -87,7 +87,7 @@ export default function StudioPage() {
                 </p>
               ) : null}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Link
                 href="/studio/profile"
                 className="rounded-craft border border-line bg-paper px-4 py-2 font-ui text-[13px] tracking-wide text-ink hover:border-brand"
@@ -99,6 +99,12 @@ export default function StudioPage() {
                 className="rounded-craft border border-line bg-paper px-4 py-2 font-ui text-[13px] tracking-wide text-ink hover:border-brand"
               >
                 Manage workshops
+              </Link>
+              <Link
+                href="/studio/sanads/new"
+                className="rounded-craft bg-brand px-4 py-2 font-ui text-[13px] tracking-wide text-ink-inverse hover:bg-brand-light"
+              >
+                Mint a Sanad
               </Link>
               <button
                 type="button"
@@ -204,11 +210,22 @@ export default function StudioPage() {
           className="mt-12"
           title="Sanads issued"
           hint="Cryptographic provenance certificates signed under your master keypair."
+          cta={{ href: "/studio/sanads/new", label: "Mint a new Sanad →" }}
         >
           {sanads === null ? (
             <Skeleton lines={2} />
           ) : sanads.length === 0 ? (
-            <Empty line="No Sanads issued yet." />
+            <div className="rounded-craft border border-dashed border-line bg-parchment px-4 py-6 text-center">
+              <p className="font-body text-[14px] text-ink-faded">
+                No Sanads issued yet — sign one for a finished piece.
+              </p>
+              <Link
+                href="/studio/sanads/new"
+                className="mt-3 inline-flex items-center justify-center rounded-craft bg-brand px-4 py-2 font-ui text-[12.5px] tracking-wide text-ink-inverse hover:bg-brand-light"
+              >
+                Mint a Sanad
+              </Link>
+            </div>
           ) : (
             <ul className="grid gap-3 sm:grid-cols-2">
               {sanads.slice(0, 6).map((s) => (
