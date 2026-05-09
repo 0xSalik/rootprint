@@ -1,0 +1,561 @@
+\documentclass[11pt,a4paper]{article}
+
+% -----------------------------------------------------------------------------
+% Packages
+% -----------------------------------------------------------------------------
+\usepackage[margin=2.2cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[expansion=false]{microtype}
+\usepackage{lmodern}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{multicol}
+\usepackage{tcolorbox}
+\usepackage{amsmath}
+
+\tcbuselibrary{skins,breakable}
+
+% -----------------------------------------------------------------------------
+% Brand palette
+% -----------------------------------------------------------------------------
+\definecolor{rpNavy}{HTML}{111827}
+\definecolor{rpBlue}{HTML}{1E3A5F}
+\definecolor{rpGold}{HTML}{C9A84C}
+\definecolor{rpIvory}{HTML}{F7F1E8}
+\definecolor{rpGrey}{HTML}{6B7280}
+\definecolor{rpGreen}{HTML}{1F7A4D}
+\definecolor{rpRed}{HTML}{B91C1C}
+\definecolor{rpLine}{HTML}{D8C38A}
+
+% -----------------------------------------------------------------------------
+% Hyperref
+% -----------------------------------------------------------------------------
+\hypersetup{
+  colorlinks=true,
+  linkcolor=rpNavy,
+  urlcolor=rpBlue,
+  citecolor=rpNavy,
+  pdfauthor={Rootprint Team},
+  pdftitle={Rootprint -- Kashmir Craft Passport Hackathon Pitch},
+}
+
+% -----------------------------------------------------------------------------
+% Layout and typography
+% -----------------------------------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textbf{\color{rpNavy}ROOTPRINT} \color{rpGrey}-- Kashmir Craft Passport}
+\fancyhead[R]{\small\color{rpGrey}Hackathon Pitch}
+\fancyfoot[C]{\small\color{rpGrey}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\titleformat{\section}
+  {\large\bfseries\color{rpNavy}}
+  {\thesection.}{0.6em}{}
+  [\vspace{-0.35em}\color{rpGold}\rule{\linewidth}{1.2pt}]
+
+\titleformat{\subsection}
+  {\normalsize\bfseries\color{rpBlue}}
+  {\thesubsection.}{0.5em}{}
+
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\itshape\color{rpGrey}}
+  {}{0em}{}
+
+\titlespacing{\section}{0pt}{1.15em}{0.55em}
+\titlespacing{\subsection}{0pt}{0.8em}{0.25em}
+\setlist[itemize]{leftmargin=1.35em,itemsep=2pt,topsep=3pt}
+\setlist[enumerate]{leftmargin=1.35em,itemsep=2pt,topsep=3pt}
+\renewcommand{\arraystretch}{1.18}
+
+% -----------------------------------------------------------------------------
+% Custom boxes
+% -----------------------------------------------------------------------------
+\newtcolorbox{heroBox}[1][]{
+  enhanced,
+  breakable,
+  colback=rpNavy,
+  colframe=rpNavy,
+  coltext=white,
+  fonttitle=\bfseries,
+  title=#1,
+  left=10pt,right=10pt,top=9pt,bottom=9pt,
+  arc=4pt,
+}
+
+\newtcolorbox{goldBox}[1][]{
+  enhanced,
+  breakable,
+  colback=rpIvory,
+  colframe=rpGold,
+  fonttitle=\bfseries\color{rpNavy},
+  title=#1,
+  left=9pt,right=9pt,top=7pt,bottom=7pt,
+  arc=4pt,
+}
+
+\newtcolorbox{riskBox}[1][]{
+  enhanced,
+  breakable,
+  colback=red!4!white,
+  colframe=rpRed,
+  fonttitle=\bfseries\color{rpRed},
+  title=#1,
+  left=9pt,right=9pt,top=7pt,bottom=7pt,
+  arc=4pt,
+}
+
+\newtcolorbox{greenBox}[1][]{
+  enhanced,
+  breakable,
+  colback=green!4!white,
+  colframe=rpGreen,
+  fonttitle=\bfseries\color{rpGreen},
+  title=#1,
+  left=9pt,right=9pt,top=7pt,bottom=7pt,
+  arc=4pt,
+}
+
+\newcommand{\metric}[2]{\textbf{\color{rpNavy}#1} & #2 \\}
+
+% -----------------------------------------------------------------------------
+\begin{document}
+% -----------------------------------------------------------------------------
+
+\begin{center}
+  {\fontsize{27}{31}\selectfont\bfseries\color{rpNavy} ROOTPRINT}\\[4pt]
+  {\large\color{rpGold}\bfseries Kashmir Craft Passport}\\[4pt]
+  {\normalsize\color{rpGrey}A voice-first provenance system that turns an artisan's oral knowledge into a QR-verifiable digital identity.}\\[8pt]
+  {\small\color{rpGrey}Hackathon Strategy, Pitch, Build Plan, and MVP Specification}
+\end{center}
+
+\vspace{0.35em}
+\noindent\color{rpGold}\rule{\linewidth}{2pt}
+\vspace{0.8em}
+
+% -----------------------------------------------------------------------------
+\section{Executive Summary}
+% -----------------------------------------------------------------------------
+
+\begin{heroBox}[One-line pitch]
+\textbf{Rootprint gives every Kashmiri artisan a Craft Passport: speak your story once, and the system generates a structured Heritage Record, an authenticity score, and a QR page that any buyer, tourist, professor, or retailer can scan to verify who made the product, where it came from, and why it is real.}
+\end{heroBox}
+
+The original idea was powerful but too distributed for a hackathon: marketplace, archive, AI agents, tourism, grants, commerce, APIs, dashboards, and institutional licensing all competing for attention. The winning version is simpler:
+
+\begin{center}
+\Large\bfseries\color{rpNavy}
+Do not pitch Rootprint as another marketplace. Pitch it as the missing proof layer for Kashmiri craft.
+\end{center}
+
+Rootprint starts with one urgent, locally resonant problem: genuine Kashmiri crafts are losing both \textbf{memory} and \textbf{market trust}. Artisans cannot prove provenance at the point of sale; buyers cannot distinguish authentic work from machine-made or mislabelled products; and the techniques behind the work remain undocumented.
+
+The hackathon MVP proves the full value chain in one live flow:
+
+\begin{enumerate}
+  \item Record or upload a short artisan interview.
+  \item Use AI to extract lineage, craft, technique, material, location, and product details.
+  \item Generate a clean Heritage Record and a transparent confidence/completeness score.
+  \item Create a QR-linked public Craft Passport page.
+  \item Show how a buyer scans the QR code and immediately trusts the product.
+\end{enumerate}
+
+% -----------------------------------------------------------------------------
+\section{Pain-point Analysis: What Was Weak and How We Fix It}
+% -----------------------------------------------------------------------------
+
+\begin{center}
+\begin{tabularx}{\linewidth}{>{\bfseries}p{0.24\linewidth}XX}
+\toprule
+Pain point in original concept & Why a jury may resist it & Fix in the new pitch \\
+\midrule
+Too many products & Seven layers sound like a company roadmap, not a hackathon build. & Compress everything into one MVP: Voice Intake $\rightarrow$ Heritage Record $\rightarrow$ QR Craft Passport. \\
+Abstract positioning & ``Institutional Memory OS'' is impressive but hard to visualise. & Use a concrete phrase: \textbf{Kashmir Craft Passport}. The judge instantly understands identity, proof, and travel of a product. \\
+Marketplace confusion & Judges may ask why this is not Etsy, ONDC, Instagram, or a tourism app. & Make Rootprint the \textbf{verification and provenance layer}, not the marketplace. Marketplaces can plug into it later. \\
+Verification overclaim & Full authenticity verification needs field operations, guilds, and time. & For MVP, provide a \textbf{completeness and evidence score}, with clear fields marked ``self-declared'', ``document-backed'', or ``community-backed''. \\
+Deployment risk & A giant system with agents, commerce, archive, grants, and APIs feels hard to deploy. & Demo a deployable web app: interview upload, AI extraction, record editor, QR generator, public page. \\
+Weak jury hook & The idea is global, but the jury is local to Kashmir. & Anchor emotionally and technically in Kashmir: pashmina, carpets, papier-mache, walnut wood, craft clusters, and NIT Srinagar as the birthplace of the proof standard. \\
+Too much future vision & The strongest idea gets diluted by features that are not needed now. & Present the rest as expansion modules after the core passport works. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{greenBox}[Result]
+The new Rootprint is easier to explain, easier to demo, easier to judge, and still large enough to become a serious company.
+\end{greenBox}
+
+% -----------------------------------------------------------------------------
+\section{The USP: The Unfairly Strong Version}
+% -----------------------------------------------------------------------------
+
+\begin{goldBox}[Core USP]
+\textbf{Rootprint is the first voice-first Craft Passport for Kashmir: it converts an artisan's oral memory into a scannable provenance identity in minutes.}
+\end{goldBox}
+
+This is strong because it combines four things that rarely exist together:
+
+\begin{enumerate}
+  \item \textbf{Local truth:} Kashmiri craft knowledge is often oral, family-held, and undocumented.
+  \item \textbf{Buyer trust:} Counterfeit and mislabelled ``Kashmiri'' products damage both artisans and consumers.
+  \item \textbf{Immediate demo:} A judge can scan a QR code and see the entire product story.
+  \item \textbf{Technical depth:} The system uses speech processing, LLM extraction, structured schemas, confidence scoring, multilingual summaries, QR infrastructure, and public verification pages.
+\end{enumerate}
+
+\subsection{The Sentence to Repeat During the Pitch}
+
+\begin{heroBox}
+\textbf{``If Kashmir does not create the digital proof standard for Kashmiri craft, someone else will define authenticity for us.''}
+\end{heroBox}
+
+That sentence makes the project local, urgent, and strategic. It gives the professors a reason to care beyond software.
+
+\subsection{Why This Can Win}
+
+\begin{itemize}
+  \item \textbf{It is not generic AI.} It is AI applied to a real Kashmiri problem with cultural, economic, and technical relevance.
+  \item \textbf{It has a live artifact.} The jury can hold a product tag, scan the QR, and see proof.
+  \item \textbf{It respects artisans.} The interface begins with voice, not forms or English-first dashboards.
+  \item \textbf{It is technically credible.} The MVP is small enough to build, but the architecture can grow into a platform.
+  \item \textbf{It has a defensible moat.} The growing corpus of verified Heritage Records becomes the canonical dataset for craft provenance.
+\end{itemize}
+
+% -----------------------------------------------------------------------------
+\section{The Problem, Rewritten for a Jury}
+% -----------------------------------------------------------------------------
+
+Kashmir's craft economy has three connected failures:
+
+\begin{enumerate}
+  \item \textbf{Authenticity failure:} Buyers cannot easily verify whether a pashmina, carpet, papier-mache item, or walnut wood piece is genuinely Kashmiri and handmade.
+  \item \textbf{Memory failure:} Techniques, motifs, material knowledge, family histories, and regional variations live inside artisans' memories and are rarely structured digitally.
+  \item \textbf{Market power failure:} Middlemen and counterfeit sellers benefit from the lack of proof, while genuine artisans struggle to command premium prices.
+\end{enumerate}
+
+\begin{riskBox}[What makes this urgent]
+The danger is not only that fake products sell. The deeper danger is that authentic knowledge becomes invisible. When a craft has no digital identity, the market treats it like a commodity.
+\end{riskBox}
+
+% -----------------------------------------------------------------------------
+\section{The Solution: Rootprint Craft Passport}
+% -----------------------------------------------------------------------------
+
+Rootprint creates a permanent, QR-verifiable digital identity for each artisan, business, or product batch.
+
+\subsection{What a Craft Passport Contains}
+
+\begin{multicols}{2}
+\begin{itemize}
+  \item Artisan or business name
+  \item Village, district, and craft cluster
+  \item Craft category
+  \item Product type
+  \item Techniques used
+  \item Material provenance
+  \item Family or apprenticeship lineage
+  \item Process summary
+  \item Photos, audio, or video evidence
+  \item Verification level
+  \item Public QR page
+  \item Last updated timestamp
+\end{itemize}
+\end{multicols}
+
+\subsection{The Key Design Choice}
+
+Most systems ask artisans to fill forms. Rootprint starts with conversation.
+
+\begin{goldBox}[Voice-first advantage]
+An artisan should be able to speak naturally in Kashmiri, Urdu, Hindi, or English. The system does the technical work: transcription, translation, extraction, structuring, and presentation.
+\end{goldBox}
+
+% -----------------------------------------------------------------------------
+\section{MVP Demo Flow}
+% -----------------------------------------------------------------------------
+
+The demo must be simple enough that the jury can describe it back in one sentence.
+
+\begin{center}
+\begin{tabularx}{\linewidth}{>{\bfseries}lX}
+\toprule
+Step & What the jury sees \\
+\midrule
+1. Speak & A short artisan interview is recorded or uploaded. \\
+2. Extract & AI pulls out craft, technique, material, origin, lineage, and product claims. \\
+3. Review & The team shows a structured Heritage Record with editable fields. \\
+4. Score & Rootprint computes a transparent Passport Completeness Score. \\
+5. Publish & A QR code is generated for the artisan/product. \\
+6. Verify & The judge scans the QR and opens a clean mobile provenance page. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{heroBox}[Live demo script]
+``This is not a marketplace listing. This is a proof document. In two minutes, we convert a spoken artisan story into a digital passport that can travel with the product anywhere in the world.''
+\end{heroBox}
+
+% -----------------------------------------------------------------------------
+\section{Technical Architecture}
+% -----------------------------------------------------------------------------
+
+\subsection{MVP System Components}
+
+\begin{center}
+\begin{tabularx}{\linewidth}{>{\bfseries}p{0.26\linewidth}X}
+\toprule
+Component & Responsibility \\
+\midrule
+Voice intake & Record or upload artisan audio/video; store raw media reference. \\
+Speech-to-text & Convert speech to transcript; prototype can use a hosted API or local model depending on available time. \\
+LLM extraction & Convert transcript into structured JSON following the Heritage Record schema. \\
+Record editor & Human review screen to correct fields before publishing. \\
+Scoring engine & Calculate Passport Completeness Score based on filled fields and evidence type. \\
+QR generator & Create unique QR code for each public passport URL. \\
+Public passport page & Mobile-first page showing story, craft, evidence, and verification status. \\
+Admin dashboard & List passports, view scores, update records, and copy QR links. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Suggested Heritage Record Schema}
+
+\begin{verbatim}
+{
+  "artisan": {
+    "name": "",
+    "location": "",
+    "languages": [],
+    "generation": ""
+  },
+  "craft": {
+    "category": "",
+    "techniques": [],
+    "tools": [],
+    "materials": []
+  },
+  "provenance": {
+    "source_region": "",
+    "lineage_story": "",
+    "evidence": []
+  },
+  "product": {
+    "name": "",
+    "description": "",
+    "price_range": ""
+  },
+  "verification": {
+    "status": "self_declared | document_backed | community_backed",
+    "score": 0,
+    "last_updated": ""
+  }
+}
+\end{verbatim}
+
+\subsection{Scoring That Avoids Overclaiming}
+
+The MVP should not pretend to legally certify authenticity. Instead, it should score evidence quality.
+
+\begin{center}
+\begin{tabularx}{\linewidth}{Xr}
+\toprule
+Evidence dimension & Points \\
+\midrule
+Artisan identity and location provided & 15 \\
+Craft category and technique specificity & 20 \\
+Material source or supplier detail & 15 \\
+Lineage, apprenticeship, or family history & 15 \\
+Media evidence uploaded & 15 \\
+Human review completed & 10 \\
+Community or document reference attached & 10 \\
+\midrule
+\textbf{Total} & \textbf{100} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{greenBox}[Important wording]
+Use \textbf{Passport Completeness Score} in the prototype. Reserve \textbf{Certified Authentic} for later when guild, government, or expert verification partnerships exist.
+\end{greenBox}
+
+% -----------------------------------------------------------------------------
+\section{Product Screens to Build}
+% -----------------------------------------------------------------------------
+
+\begin{enumerate}
+  \item \textbf{Landing page:} ``Give your craft a passport.'' One button: Create Passport.
+  \item \textbf{Interview page:} Record/upload audio, choose language, add optional product photo.
+  \item \textbf{AI extraction review:} Transcript on left, extracted fields on right, confidence indicators.
+  \item \textbf{Passport dashboard:} List of created passports with score, status, QR, and public link.
+  \item \textbf{Public QR page:} Buyer-facing mobile page with artisan story, craft facts, evidence, and scan timestamp.
+\end{enumerate}
+
+\subsection{The Public QR Page Must Look Premium}
+
+The buyer-facing page is the emotional center of the demo. It should not feel like a database row. It should feel like a museum label, certificate, and product story combined.
+
+\begin{itemize}
+  \item Hero: artisan name, craft, location, verification level.
+  \item ``Why this is real'': technique, material, lineage, evidence.
+  \item ``Listen to the maker'': short audio clip or transcript excerpt.
+  \item ``About this craft'': short educational section for tourists/buyers.
+  \item ``Passport ID'': immutable-looking ID, timestamp, QR.
+\end{itemize}
+
+% -----------------------------------------------------------------------------
+\section{What to Remove from the Hackathon Pitch}
+% -----------------------------------------------------------------------------
+
+These ideas are still valuable, but they should be moved to ``future roadmap'' so the pitch does not look impossible:
+
+\begin{itemize}
+  \item Full direct commerce marketplace
+  \item Seven autonomous AI agents
+  \item Grant application automation
+  \item Tourism marketplace and live workshop bookings
+  \item Enterprise API licensing
+  \item Large-scale government data contracts
+  \item Legal certification claims
+\end{itemize}
+
+\begin{goldBox}[How to mention the larger vision]
+``Today we are building the passport. Tomorrow, commerce, tourism, grants, and institutional APIs can plug into that passport. The passport is the foundation.''
+\end{goldBox}
+
+% -----------------------------------------------------------------------------
+\section{Roadmap: From Hackathon to Real Deployment}
+% -----------------------------------------------------------------------------
+
+\begin{center}
+\begin{tabularx}{\linewidth}{>{\bfseries}p{0.22\linewidth}X}
+\toprule
+Stage & Scope \\
+\midrule
+Hackathon MVP & One craft category, 3--5 sample passports, AI extraction, scoring, QR pages. \\
+Pilot & 25--50 real artisans, human-reviewed records, local language interviews, printable product tags. \\
+Verification layer & Partnerships with craft experts, guilds, departments, or academic reviewers for community-backed records. \\
+Buyer layer & Scan analytics, product inquiry button, export-ready PDF certificate. \\
+Platform layer & APIs for retailers, tourism boards, institutions, and marketplaces. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% -----------------------------------------------------------------------------
+\section{Team Division: 5 People as 2 + 2 + 1}
+% -----------------------------------------------------------------------------
+
+\begin{center}
+\begin{tabularx}{\linewidth}{>{\bfseries}p{0.18\linewidth}p{0.24\linewidth}X}
+\toprule
+Unit & Ownership & Deliverables \\
+\midrule
+Team A: 2 people & Frontend and demo experience & Landing page, interview/upload screen, extraction review UI, dashboard, public QR passport page, premium visual polish. \\
+Team B: 2 people & Backend and data infrastructure & API routes, database schema, media storage, QR generation, passport URLs, scoring engine, deployment, seed data. \\
+Solo track: 1 person & AI pipeline, schema, pitch integration, and final demo orchestration & Prompt design, transcript-to-JSON extraction, confidence handling, multilingual story generation, Heritage Record schema, demo script, sample artisan data, final PDF/pitch alignment. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Parallel Work Plan}
+
+\begin{enumerate}
+  \item \textbf{First integration target:} Backend exposes create/read passport endpoints; frontend can create a dummy passport; AI pipeline can produce valid JSON from a sample transcript.
+  \item \textbf{Second integration target:} Real transcript creates a passport record; QR opens the public page.
+  \item \textbf{Final integration target:} Demo mode with one polished sample pashmina or carpet passport, backup seed data, and a rehearsed scan flow.
+\end{enumerate}
+
+\begin{riskBox}[Backup strategy]
+If live speech recognition fails, use a prerecorded artisan-style interview transcript. The core demo is not the microphone; the core demo is conversion of oral knowledge into a passport.
+\end{riskBox}
+
+% -----------------------------------------------------------------------------
+\section{Pitch Flow for the Final Presentation}
+% -----------------------------------------------------------------------------
+
+\begin{enumerate}
+  \item \textbf{Opening hook:} ``Everyone knows Kashmiri craft. Very few buyers can prove it.''
+  \item \textbf{Problem:} Authentic artisans lose value because memory and provenance are not digitally portable.
+  \item \textbf{Demo promise:} ``We will create a Craft Passport live.''
+  \item \textbf{Demo:} Record/extract/review/score/publish/scan.
+  \item \textbf{Technology:} Voice-first AI extraction, structured schema, transparent scoring, QR provenance.
+  \item \textbf{Why Kashmir first:} Global recognition, counterfeit pressure, deep craft diversity, local institutional relevance.
+  \item \textbf{Business model:} Subscription for artisans/businesses, QR tags, verification review, export certificates, API integrations later.
+  \item \textbf{Impact:} Higher trust, better pricing power, preserved knowledge, local ownership of authenticity data.
+  \item \textbf{Closing line:} ``Rootprint makes Kashmiri craft impossible to erase and harder to fake.''
+\end{enumerate}
+
+\subsection{60-second Version}
+
+\begin{heroBox}
+Kashmiri craft has a proof problem. A genuine artisan may spend years mastering a technique, but when the product reaches a buyer, it competes with fakes that use the same words: handmade, authentic, Kashmiri. Rootprint solves this with a voice-first Craft Passport. The artisan speaks their story; AI turns it into a structured Heritage Record; the system generates a QR page that travels with the product. A buyer scans and sees who made it, where it came from, what technique was used, and what evidence supports the claim. We are not building another marketplace. We are building the proof layer that marketplaces, tourism, export, and preservation can trust.
+\end{heroBox}
+
+% -----------------------------------------------------------------------------
+\section{Business Model, Kept Simple}
+% -----------------------------------------------------------------------------
+
+\begin{center}
+\begin{tabularx}{\linewidth}{>{\bfseries}p{0.28\linewidth}X}
+\toprule
+Revenue stream & Description \\
+\midrule
+Passport creation & Free basic passports; paid upgraded passports with more media, printable QR tags, and analytics. \\
+Verification review & Fee for expert/community-backed review once partnerships exist. \\
+QR tag packs & Printed durable tags for products, workshops, stores, and export packaging. \\
+Export certificate PDFs & Paid generation of buyer-ready provenance and material documentation. \\
+Retail/API integrations & Later-stage integrations for stores that want verified craft data embedded in product pages. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% -----------------------------------------------------------------------------
+\section{Judging Criteria Alignment}
+% -----------------------------------------------------------------------------
+
+\begin{center}
+\begin{tabularx}{\linewidth}{>{\bfseries}p{0.25\linewidth}X}
+\toprule
+Likely judging criterion & Rootprint answer \\
+\midrule
+Innovation & Voice-first AI provenance passport for living craft knowledge. \\
+Technical implementation & Speech-to-text, LLM extraction, JSON schema, scoring, QR generation, public verification pages. \\
+Social impact & Helps artisans preserve knowledge, build trust, and improve pricing power. \\
+Local relevance & Starts with Kashmir's globally recognised craft identity. \\
+Feasibility & Narrow MVP with clear demo flow and realistic team split. \\
+Scalability & Same passport model can extend to other crafts and regions after Kashmir. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% -----------------------------------------------------------------------------
+\section{Final Positioning}
+% -----------------------------------------------------------------------------
+
+\begin{goldBox}[What Rootprint is]
+Rootprint is a \textbf{digital proof standard} for handmade heritage products.
+\end{goldBox}
+
+\begin{goldBox}[What Rootprint is not]
+Rootprint is not trying to replace artisans, become another e-commerce marketplace, or make legal authenticity claims without community verification.
+\end{goldBox}
+
+\begin{heroBox}[Closing line]
+\textbf{Rootprint makes Kashmiri craft impossible to erase and harder to fake.}
+\end{heroBox}
+
+\vspace{0.5em}
+\noindent\color{rpGold}\rule{\linewidth}{1pt}
+
+\begin{center}
+\small\color{rpGrey}
+\textbf{ROOTPRINT} -- Kashmir Craft Passport -- Built for the makers whose names should travel with their work.
+\end{center}
+
+\end{document}
