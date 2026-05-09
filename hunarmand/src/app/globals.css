@@ -1,0 +1,671 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* =========================================================================
+   HUNARMAND — DESIGN SYSTEM
+   "Reverence." Editorial luxury with Kashmiri soul.
+   This file is the single source of truth for color, type, motion, and
+   seasonal palette behavior. Read /AGENTS.md and the brief before editing.
+   ========================================================================= */
+
+:root {
+  /* -----------------------------------------------------------------------
+     1. GLOBAL SURFACE — the platform's base, regardless of season
+     ----------------------------------------------------------------------- */
+  --bg-primary: #faf7f2; /* warm parchment */
+  --bg-secondary: #f0ebe3; /* aged paper / cards */
+  --bg-tertiary: #e6dfd1; /* deeper card wash */
+  --bg-dark: #1a1410; /* walnut black — footer, hero */
+
+  /* TEXT */
+  --text-primary: #1c1410; /* walnut ink */
+  --text-secondary: #5a4a3a; /* faded ink */
+  --text-muted: #9a8a7a; /* margin notes */
+  --text-inverse: #faf7f2; /* parchment on dark */
+
+  /* BRAND ANCHOR — the thread on every page */
+  --brand: #8b1a1a; /* Kashmiri rouge */
+  --brand-light: #c4454a; /* rouge hover */
+  --brand-subtle: #f5e6e6; /* tinted wash */
+
+  /* CRAFT GOLD — universal premium signal */
+  --gold: #c8975a; /* saffron-copper */
+  --gold-light: #e8c48a;
+  --gold-dark: #a87a3e;
+
+  /* STRUCTURE */
+  --border-line: #d4c8b8; /* aged paper edge */
+  --border-strong: #8a7a6a; /* leather binding */
+  --shadow: 28 20 16; /* rgb triplet for shadow */
+  --shadow-soft: rgba(28, 20, 16, 0.06);
+  --shadow-mid: rgba(28, 20, 16, 0.12);
+  --shadow-strong: rgba(28, 20, 16, 0.28);
+  --shadow-warm: rgba(120, 70, 30, 0.18);
+
+  /* -----------------------------------------------------------------------
+     2. SEASONAL CRAFT PALETTES — concrete, never overridden
+     ----------------------------------------------------------------------- */
+
+  /* BAHAR — Spring · Sozni Embroidery, Tulip Festival, Shawls */
+  --spring-deep: #7b2d3e; /* rose madder */
+  --spring-mid: #c2667a; /* tulip pink */
+  --spring-light: #f2d4d9; /* first-light rose */
+  --spring-accent: #2c4a3e; /* chinar leaf green */
+  --spring-gold: #c8975a; /* dried saffron thread */
+
+  /* GRISM — Summer · Naqashi, Heritage Walks, Copper */
+  --summer-deep: #1a3c5e; /* lapis lazuli */
+  --summer-mid: #2e6b9e; /* mountain sky */
+  --summer-light: #e8f2f8; /* dal haze */
+  --summer-accent: #d4790a; /* copper turmeric */
+  --summer-gold: #f0c040; /* gilded detail */
+
+  /* HARUD — Autumn · Saffron, Walnut, Khatamband, Carpets */
+  --autumn-deep: #5c2d0a; /* walnut heartwood */
+  --autumn-mid: #9b4a1a; /* fallen chinar */
+  --autumn-light: #f5e6d3; /* saffron cream */
+  --autumn-accent: #6b0f1a; /* saffron stamen */
+  --autumn-gold: #d4a017; /* harvest gold */
+
+  /* SHISHUR — Winter · Pashmina, Kani, Pheran */
+  --winter-deep: #1c2b3a; /* midnight Zabarwan */
+  --winter-mid: #4a6b8a; /* frozen Dal mist */
+  --winter-light: #eef2f5; /* snow light */
+  --winter-accent: #8b5e3c; /* walnut husk on snow */
+  --winter-gold: #c4a882; /* raw pashmina */
+
+  /* -----------------------------------------------------------------------
+     3. DYNAMIC SEASON SLOT — set by <CraftColorProvider />
+     Default = Harud (autumn), the demo master's season.
+     ----------------------------------------------------------------------- */
+  --season-deep: var(--autumn-deep);
+  --season-mid: var(--autumn-mid);
+  --season-light: var(--autumn-light);
+  --season-accent: var(--autumn-accent);
+  --season-gold: var(--autumn-gold);
+  --season-name: "harud";
+
+  /* -----------------------------------------------------------------------
+     4. TYPOGRAPHY — every family is intentional
+     Variable names are wired to next/font in layout.tsx.
+     ----------------------------------------------------------------------- */
+  --font-display-stack: var(--font-display, "Cormorant Garamond"), "Cormorant Garamond",
+    "EB Garamond", Georgia, serif;
+  --font-serif-stack: var(--font-serif, "Libre Baskerville"), "Libre Baskerville",
+    Georgia, "Times New Roman", serif;
+  --font-ui-stack: var(--font-ui, "Jost"), "Jost", "Futura", "Helvetica Neue",
+    sans-serif;
+  --font-body-stack: var(--font-body, "Lora"), "Lora", Georgia, serif;
+  --font-mono-stack: var(--font-mono, "IBM Plex Mono"), "IBM Plex Mono",
+    "JetBrains Mono", "Menlo", monospace;
+  --font-nastaliq-stack: var(--font-nastaliq, "Noto Nastaliq Urdu"),
+    "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", "Nafees Nastaleeq", serif;
+  --font-handwriting-stack: var(--font-handwriting, "Caveat"), "Caveat",
+    "Bradley Hand", "Segoe Script", cursive;
+
+  /* -----------------------------------------------------------------------
+     5. RADII — tactile, never sharp, never SaaS-round
+     ----------------------------------------------------------------------- */
+  --r-sm: 0.25rem;
+  --r-md: 0.375rem;
+  --r-lg: 0.5rem;
+  --r-xl: 0.75rem;
+  --r-2xl: 1rem;
+
+  /* -----------------------------------------------------------------------
+     6. MOTION — deliberate, never elastic
+     ----------------------------------------------------------------------- */
+  --ease-warm: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-out-craft: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-craft: cubic-bezier(0.7, 0, 0.84, 0);
+  --dur-fast: 180ms;
+  --dur-base: 240ms;
+  --dur-slow: 400ms;
+  --dur-unfurl: 600ms;
+}
+
+/* =========================================================================
+   SEASON OVERRIDE CLASSES — applied by <CraftColorProvider />
+   Wrap any subtree in `.theme-bahar / -grism / -harud / -shishur` to
+   re-paint the dynamic --season-* slot. Cards, ribbons, and event sections
+   inherit the correct palette without the component having to know which
+   season it is in.
+   ========================================================================= */
+.theme-bahar {
+  --season-deep: var(--spring-deep);
+  --season-mid: var(--spring-mid);
+  --season-light: var(--spring-light);
+  --season-accent: var(--spring-accent);
+  --season-gold: var(--spring-gold);
+  --season-name: "bahar";
+}
+
+.theme-grism {
+  --season-deep: var(--summer-deep);
+  --season-mid: var(--summer-mid);
+  --season-light: var(--summer-light);
+  --season-accent: var(--summer-accent);
+  --season-gold: var(--summer-gold);
+  --season-name: "grism";
+}
+
+.theme-harud {
+  --season-deep: var(--autumn-deep);
+  --season-mid: var(--autumn-mid);
+  --season-light: var(--autumn-light);
+  --season-accent: var(--autumn-accent);
+  --season-gold: var(--autumn-gold);
+  --season-name: "harud";
+}
+
+.theme-shishur {
+  --season-deep: var(--winter-deep);
+  --season-mid: var(--winter-mid);
+  --season-light: var(--winter-light);
+  --season-accent: var(--winter-accent);
+  --season-gold: var(--winter-gold);
+  --season-name: "shishur";
+}
+
+/* =========================================================================
+   TAILWIND v4 THEME WIRING
+   Expose Hunarmand tokens as utility classes so the rest of the codebase
+   never has to write `var(--…)` by hand. Existing shadcn block left intact.
+   ========================================================================= */
+
+@theme inline {
+  /* Surfaces */
+  --color-parchment: var(--bg-primary);
+  --color-paper: var(--bg-secondary);
+  --color-paper-deep: var(--bg-tertiary);
+  --color-walnut: var(--bg-dark);
+
+  /* Ink */
+  --color-ink: var(--text-primary);
+  --color-ink-faded: var(--text-secondary);
+  --color-ink-margin: var(--text-muted);
+  --color-ink-inverse: var(--text-inverse);
+
+  /* Brand & gold */
+  --color-brand: var(--brand);
+  --color-brand-light: var(--brand-light);
+  --color-brand-subtle: var(--brand-subtle);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-gold-dark: var(--gold-dark);
+
+  /* Structure */
+  --color-line: var(--border-line);
+  --color-line-strong: var(--border-strong);
+
+  /* Spring · Bahar */
+  --color-spring-deep: var(--spring-deep);
+  --color-spring-mid: var(--spring-mid);
+  --color-spring-light: var(--spring-light);
+  --color-spring-accent: var(--spring-accent);
+  --color-spring-gold: var(--spring-gold);
+
+  /* Summer · Grism */
+  --color-summer-deep: var(--summer-deep);
+  --color-summer-mid: var(--summer-mid);
+  --color-summer-light: var(--summer-light);
+  --color-summer-accent: var(--summer-accent);
+  --color-summer-gold: var(--summer-gold);
+
+  /* Autumn · Harud */
+  --color-autumn-deep: var(--autumn-deep);
+  --color-autumn-mid: var(--autumn-mid);
+  --color-autumn-light: var(--autumn-light);
+  --color-autumn-accent: var(--autumn-accent);
+  --color-autumn-gold: var(--autumn-gold);
+
+  /* Winter · Shishur */
+  --color-winter-deep: var(--winter-deep);
+  --color-winter-mid: var(--winter-mid);
+  --color-winter-light: var(--winter-light);
+  --color-winter-accent: var(--winter-accent);
+  --color-winter-gold: var(--winter-gold);
+
+  /* Dynamic season slot — re-paints under <CraftColorProvider /> */
+  --color-season-deep: var(--season-deep);
+  --color-season-mid: var(--season-mid);
+  --color-season-light: var(--season-light);
+  --color-season-accent: var(--season-accent);
+  --color-season-gold: var(--season-gold);
+
+  /* Type families — `font-display`, `font-serif`, etc. */
+  --font-display: var(--font-display-stack);
+  --font-serif: var(--font-serif-stack);
+  --font-ui: var(--font-ui-stack);
+  --font-body: var(--font-body-stack);
+  --font-mono: var(--font-mono-stack);
+  --font-nastaliq: var(--font-nastaliq-stack);
+  --font-handwriting: var(--font-handwriting-stack);
+
+  /* Custom radii — softer than shadcn defaults so cards feel tactile */
+  --radius-craft: 6px;
+  --radius-craft-lg: 10px;
+  --radius-craft-xl: 14px;
+
+  /* Animations — referenced as `animate-stagger-up`, etc. */
+  --animate-stagger-up: stagger-up 400ms var(--ease-out-craft) both;
+  --animate-fade-in: fade-in 320ms var(--ease-warm) both;
+  --animate-lift: lift 200ms var(--ease-out-craft);
+  --animate-unfurl: unfurl 600ms var(--ease-out-craft) both;
+  --animate-ripple: fabric-ripple 700ms var(--ease-out-craft) forwards;
+  --animate-hashia-draw: hashia-draw 1400ms var(--ease-warm) infinite;
+  --animate-pulse-ring: pulse-ring 2200ms var(--ease-out-craft) infinite;
+  --animate-thread-pulse: thread-pulse 2400ms var(--ease-warm) infinite;
+}
+
+/* =========================================================================
+   SHADCN COMPATIBILITY LAYER
+   Re-map the neutral shadcn tokens so the existing button + future shadcn
+   components naturally adopt the Hunarmand palette without a fork.
+   ========================================================================= */
+
+:root {
+  /* shadcn semantic — re-skinned to Hunarmand */
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+  --card: var(--bg-secondary);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-secondary);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--brand);
+  --primary-foreground: var(--text-inverse);
+  --secondary: var(--bg-tertiary);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--bg-secondary);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--gold);
+  --accent-foreground: var(--text-primary);
+  --destructive: var(--brand);
+  --border: var(--border-line);
+  --input: var(--border-line);
+  --ring: var(--brand-light);
+  --chart-1: var(--spring-deep);
+  --chart-2: var(--summer-deep);
+  --chart-3: var(--autumn-deep);
+  --chart-4: var(--winter-deep);
+  --chart-5: var(--gold);
+  --radius: 6px;
+  --sidebar: var(--bg-secondary);
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: var(--text-inverse);
+  --sidebar-accent: var(--bg-tertiary);
+  --sidebar-accent-foreground: var(--text-primary);
+  --sidebar-border: var(--border-line);
+  --sidebar-ring: var(--brand-light);
+}
+
+.dark {
+  --background: var(--bg-dark);
+  --foreground: var(--text-inverse);
+  --card: #221c17;
+  --card-foreground: var(--text-inverse);
+  --popover: #221c17;
+  --popover-foreground: var(--text-inverse);
+  --primary: var(--brand-light);
+  --primary-foreground: var(--text-inverse);
+  --secondary: #2c241e;
+  --secondary-foreground: var(--text-inverse);
+  --muted: #2c241e;
+  --muted-foreground: #c5b9aa;
+  --accent: var(--gold);
+  --accent-foreground: var(--text-primary);
+  --destructive: var(--brand-light);
+  --border: rgba(212, 200, 184, 0.18);
+  --input: rgba(212, 200, 184, 0.22);
+  --ring: var(--gold);
+  --sidebar: #221c17;
+  --sidebar-foreground: var(--text-inverse);
+  --sidebar-primary: var(--brand-light);
+  --sidebar-primary-foreground: var(--text-inverse);
+  --sidebar-accent: #2c241e;
+  --sidebar-accent-foreground: var(--text-inverse);
+  --sidebar-border: rgba(212, 200, 184, 0.18);
+  --sidebar-ring: var(--gold);
+}
+
+/* =========================================================================
+   BASE LAYER — global element defaults
+   ========================================================================= */
+@layer base {
+  * {
+    @apply border-line;
+  }
+
+  html {
+    font-family: var(--font-body-stack);
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-body-stack);
+    font-feature-settings: "kern", "liga", "calt", "onum";
+  }
+
+  /* Headings always use the display family by default */
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display-stack);
+    color: var(--text-primary);
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-serif-stack);
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+
+  /* Selection feels like ink on parchment */
+  ::selection {
+    background-color: var(--brand-subtle);
+    color: var(--brand);
+  }
+
+  /* Mirror-aware: any RTL subtree gets the Nastaliq family */
+  [dir="rtl"] {
+    font-family: var(--font-nastaliq-stack);
+  }
+
+  /* IBM Plex Mono everywhere we tag metadata */
+  [data-meta="mono"],
+  code,
+  kbd,
+  samp {
+    font-family: var(--font-mono-stack);
+    font-feature-settings: "ss01", "calt", "zero";
+  }
+}
+
+/* =========================================================================
+   UTILITIES — Hunarmand-specific, additive to Tailwind
+   ========================================================================= */
+
+@layer utilities {
+  /* — Type roles — */
+  .font-display {
+    font-family: var(--font-display-stack);
+  }
+  .font-serif {
+    font-family: var(--font-serif-stack);
+  }
+  .font-ui {
+    font-family: var(--font-ui-stack);
+  }
+  .font-body {
+    font-family: var(--font-body-stack);
+  }
+  .font-mono {
+    font-family: var(--font-mono-stack);
+  }
+  .font-nastaliq {
+    font-family: var(--font-nastaliq-stack);
+    line-height: 2.1;
+  }
+  .font-handwriting {
+    font-family: var(--font-handwriting-stack);
+    line-height: 1.35;
+  }
+
+  /* — Editorial display variants — */
+  .display-hero {
+    font-family: var(--font-display-stack);
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: -0.01em;
+  }
+  .display-italic {
+    font-family: var(--font-display-stack);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: 0.005em;
+  }
+  .label-ui {
+    font-family: var(--font-ui-stack);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.75rem;
+  }
+  .meta-mono {
+    font-family: var(--font-mono-stack);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+  }
+
+  /* — Surface utilities — */
+  .surface-card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-line);
+    box-shadow: 0 1px 0 0 rgba(28, 20, 16, 0.04),
+      0 6px 18px -10px var(--shadow-mid);
+    border-radius: var(--r-md);
+  }
+  .surface-walnut {
+    background-color: var(--bg-dark);
+    color: var(--text-inverse);
+  }
+
+  /* — Hover lift, the platform's signature card interaction — */
+  .hover-lift {
+    transition: transform var(--dur-base) var(--ease-out-craft),
+      box-shadow var(--dur-base) var(--ease-out-craft);
+    will-change: transform, box-shadow;
+  }
+  .hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 40px -22px var(--shadow-strong),
+      0 4px 0 0 var(--shadow-warm);
+  }
+
+  /* — Brand thread: the 4px top border that runs across craft cards — */
+  .craft-ribbon {
+    position: relative;
+  }
+  .craft-ribbon::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: var(--season-deep);
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
+  }
+
+  /* — Hashia divider line, used between sections — */
+  .rule-hashia {
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      var(--gold) 18%,
+      var(--gold) 82%,
+      transparent 100%
+    );
+  }
+
+  /* — Talim grid surface tint — */
+  .surface-talim {
+    background-image: radial-gradient(
+      var(--gold-light) 0.5px,
+      transparent 0.6px
+    );
+    background-size: 8px 8px;
+    background-color: var(--bg-dark);
+  }
+
+  /* — Stagger-up entry — */
+  .stagger-children > * {
+    opacity: 0;
+    animation: stagger-up var(--dur-slow) var(--ease-out-craft) forwards;
+  }
+  .stagger-children > *:nth-child(1) {
+    animation-delay: 60ms;
+  }
+  .stagger-children > *:nth-child(2) {
+    animation-delay: 120ms;
+  }
+  .stagger-children > *:nth-child(3) {
+    animation-delay: 180ms;
+  }
+  .stagger-children > *:nth-child(4) {
+    animation-delay: 240ms;
+  }
+  .stagger-children > *:nth-child(5) {
+    animation-delay: 300ms;
+  }
+  .stagger-children > *:nth-child(6) {
+    animation-delay: 360ms;
+  }
+  .stagger-children > *:nth-child(7) {
+    animation-delay: 420ms;
+  }
+  .stagger-children > *:nth-child(8) {
+    animation-delay: 480ms;
+  }
+
+  /* — Loading: the Hashia border draws itself instead of a spinner — */
+  .loader-hashia {
+    width: 100%;
+    height: 14px;
+    overflow: hidden;
+    color: var(--gold);
+  }
+  .loader-hashia svg path {
+    stroke-dasharray: 600;
+    stroke-dashoffset: 600;
+    animation: hashia-draw 1400ms var(--ease-warm) infinite;
+  }
+
+  /* — Verified Sanad seal aura — */
+  .seal-glow {
+    box-shadow: 0 0 0 1px var(--gold-light), 0 0 24px -6px var(--gold);
+  }
+}
+
+/* =========================================================================
+   KEYFRAMES — deliberate motion, no bounce, no elastic
+   ========================================================================= */
+@keyframes stagger-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes lift {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-3px);
+  }
+}
+
+/* The Sanad page enters as if a scroll is being unfurled — single vertical
+   reveal, no spring, no bounce. */
+@keyframes unfurl {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(8px);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+    transform: translateY(0);
+  }
+}
+
+/* Seasonal page-to-page transition — fabric ripple. */
+@keyframes fabric-ripple {
+  0% {
+    clip-path: circle(0% at 50% 50%);
+    opacity: 1;
+  }
+  100% {
+    clip-path: circle(140% at 50% 50%);
+    opacity: 0;
+  }
+}
+
+/* Hashia pattern draws itself — used in lieu of spinners. */
+@keyframes hashia-draw {
+  0% {
+    stroke-dashoffset: 600;
+  }
+  60% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -600;
+  }
+}
+
+/* Portrait ring single pulse on Artisan Card hover. */
+@keyframes pulse-ring {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--season-deep);
+  }
+  50% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+
+/* Lineage thread breathing — for live workshops, available masters. */
+@keyframes thread-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Reduced motion: the platform is reverent — never override user preference. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
