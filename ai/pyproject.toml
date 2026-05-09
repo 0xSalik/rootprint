@@ -45,6 +45,13 @@ dev = [
     "mypy>=1.13.0",
     "respx>=0.21.1",
 ]
+# Truly free embedding path — runs sentence-transformers locally with no
+# API. ~1GB of dependencies (PyTorch + transformers); only install if you
+# choose ``HUNARMAND_EMBEDDING_PROVIDER=local``.
+local-embeddings = [
+    "sentence-transformers>=3.3.0",
+    "torch>=2.5.0",
+]
 
 [project.scripts]
 hunarmand-ai = "hunarmand_ai.cli:app"

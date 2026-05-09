@@ -32,14 +32,17 @@ This package owns:
 ```bash
 cd ai
 
-# 1. Create a virtualenv and install
+# 1. Create a virtualenv and install (with the free-tier embedding extras)
 python -m venv .venv && source .venv/bin/activate
-pip install -e '.[dev]'
+pip install -e '.[dev,local-embeddings]'
 
 # 2. Configure environment
 cp .env.example .env
-# (open .env and set OPENAI_API_KEY at minimum to use the LLM-powered paths;
-#  the offline demo runs without it)
+# The defaults are already wired for the FREE path:
+#   LLM      -> OpenRouter (free models)         set OPENROUTER_API_KEY
+#   ASR      -> Groq Whisper (free tier)         set GROQ_API_KEY
+#   Embeds   -> local sentence-transformers      no key needed
+# Sign-up links inside .env.example.
 
 # 3. Bring up Postgres + pgvector
 docker compose up -d
@@ -51,11 +54,11 @@ hunarmand-ai migrate
 hunarmand-ai serve --reload
 # Docs: http://localhost:8000/docs
 
-# 6. Run the end-to-end demo (offline — no API keys needed)
+# 6. Run the end-to-end demo (offline — no API keys needed at all)
 hunarmand-ai demo
 
-# 7. Run the demo with the live LLM
-OPENAI_API_KEY=sk-... hunarmand-ai demo --use-llm
+# 7. Run the demo with the live LLM (free OpenRouter is fine)
+OPENROUTER_API_KEY=or-... hunarmand-ai demo --use-llm
 
 # 8. Run the tests
 pytest -q
@@ -86,31 +89,41 @@ The OpenAPI schema is served at `/openapi.json` and a full Swagger UI at `/docs`
 
 ## Provider research summary
 
+### LLM
+
+| Provider | Cost | Notes |
+|---|---|---|
+| **OpenRouter** | Free + paid | OpenAI-compatible API. Many genuinely free models (`meta-llama/llama-3.3-70b-instruct:free`, `google/gemini-2.0-flash-exp:free`, `deepseek/deepseek-chat:free`, `qwen/qwen-2.5-72b-instruct:free`, `nousresearch/hermes-3-llama-3.1-405b:free`). **Default for the hackathon.** |
+| **OpenAI** | Paid | GPT-4o family. Used directly for whoever already has a key. |
+| **Anthropic** | Paid | Claude 3.5 Sonnet. Same code path. |
+
+Switch via `HUNARMAND_LLM_PROVIDER` and `HUNARMAND_LLM_MODEL`. The structured-output helper auto-downgrades from `json_schema` → `json_object` → `prompt-only` so the same code works against `gpt-4o`, `meta-llama/llama-3.3-70b-instruct:free`, and a tiny `mistral-7b:free` without code changes.
+
 ### ASR
 
 The fallback ladder (configurable via `HUNARMAND_ASR_LADDER`) is:
 
-1. **Bhashini ULCA** — Government of India's national language platform. First-class Kashmiri (`ks`) ASR. Best-in-class for Indian languages including Koshur. Two-stage auth (model resolution → inference). Requires `BHASHINI_API_KEY`, `BHASHINI_USER_ID`.
-2. **AI4Bharat IndicWhisper / IndicConformer** — open-source Whisper fine-tuned on 36 Indic languages incl. `ks`. Run via your own HF Inference Endpoint or vLLM/FastAPI shim. Configure via `AI4BHARAT_INFERENCE_URL`.
-3. **OpenAI Whisper-large-v3** (`whisper-1`) — highest baseline quality globally. Kashmiri is *not* officially supported, so the provider routes Koshur to Urdu acoustic models with a Kashmiri-craft-vocabulary prompt. Excellent for Urdu/Hindi.
-4. **Manual** — facilitator types as the master speaks. Always available, `confidence=1.0` because it is canonical ground truth.
+1. **Bhashini ULCA** — Government of India's national language platform. First-class Kashmiri (`ks`) ASR. Two-stage auth (model resolution → inference). Free for non-commercial use; requires `BHASHINI_API_KEY` + `BHASHINI_USER_ID`.
+2. **AI4Bharat IndicWhisper / IndicConformer** — open-source, fine-tuned for 36 Indic languages incl. `ks`. Run via your own HF Inference Endpoint or self-hosted shim; configure via `AI4BHARAT_INFERENCE_URL`.
+3. **Groq Whisper-large-v3-turbo** — runs OpenAI Whisper on Groq's hardware, **free tier with very low latency**. OpenAI-compatible API at `https://api.groq.com/openai/v1`. Get a free key at [console.groq.com](https://console.groq.com/keys). **Default free-tier ASR for the hackathon.**
+4. **OpenAI Whisper-large-v3** (`whisper-1`) — highest baseline quality, paid. Kashmiri routed via Urdu acoustic with a Kashmiri-craft-vocabulary prompt.
+5. **Manual** — facilitator types as the master speaks. Always available, `confidence=1.0` because it is canonical ground truth.
 
 The pipeline accepts the first attempt that clears `ACCEPT_CONFIDENCE` (0.65). If everything is below threshold, it returns the highest-confidence attempt with `fallback_used=True` so the operator can re-record or correct.
 
-### LLM
-
-* **OpenAI GPT-4o (`gpt-4o-2024-11-20`)** is the default. Best multilingual reasoning available today, native JSON-schema response_format, native Whisper integration.
-* **Anthropic Claude 3.5 Sonnet** is supported as an alternative provider on the same code path.
-* Models are configurable per-deployment via `HUNARMAND_LLM_PROVIDER` and `HUNARMAND_LLM_MODEL`.
-
 ### Embeddings
 
-* **OpenAI `text-embedding-3-small`** by default (1536 dim). pgvector index uses cosine distance.
-* The provider/model are configurable; swap for `text-embedding-3-large` (3072 dim) if you want stronger retrieval at higher cost.
+| Provider | Cost | Default model | Dim |
+|---|---|---|---|
+| **`local`** | Free (no API) | `intfloat/multilingual-e5-small` | 384 |
+| **`jina`** | Free tier with key | `jina-embeddings-v3` | 1024 |
+| **`openai`** | Paid | `text-embedding-3-small` | 1536 |
+
+Default is `local`. Install `pip install '.[local-embeddings]'` to enable. For a lighter remote alternative without PyTorch, switch `HUNARMAND_EMBEDDING_PROVIDER=jina` and set `JINA_API_KEY`. **pgvector enforces the column dimension** — change `HUNARMAND_EMBEDDING_DIMENSIONS` to match the model and recreate the `vault_chunks` table when switching providers.
 
 ### Translation
 
-LLM-based translation through GPT-4o-mini. Bhashini translation is a configurable alternative. We deliberately use the LLM here because off-the-shelf NMT struggles with Koshur, and the LLM understands craft-specific terms (sozni, kani, naqashi, etc.) when prompted.
+LLM-based by default. Uses whatever model is configured for `HUNARMAND_LLM_PROVIDER`/`HUNARMAND_LLM_MODEL`, so the free OpenRouter path translates for free. Bhashini NMT is a configurable alternative.
 
 ## Cryptography
 

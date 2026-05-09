@@ -6,6 +6,13 @@ We deliberately use ``pydantic-settings`` so that:
 * missing values for non-essential providers degrade gracefully (e.g. no
   Bhashini key just removes Bhashini from the ASR ladder),
 * the same code runs locally, in CI, and in production with no branching.
+
+Free-tier path (no paid services):
+
+* ``HUNARMAND_LLM_PROVIDER=openrouter`` + ``OPENROUTER_API_KEY``
+* ``HUNARMAND_ASR_LADDER=groq,whisper,manual`` + ``GROQ_API_KEY``
+* ``HUNARMAND_EMBEDDING_PROVIDER=local``  (sentence-transformers,
+  optionally swap to ``jina`` with ``JINA_API_KEY``)
 """
 
 from __future__ import annotations
@@ -45,31 +52,81 @@ class Settings(BaseSettings):
     kek_secret: str = Field(default="dev-only-do-not-use-in-prod", alias="HUNARMAND_KEK_SECRET")
 
     # ── LLM ────────────────────────────────────────────────────────────────
-    llm_provider: Literal["openai", "anthropic"] = Field(
-        default="openai", alias="HUNARMAND_LLM_PROVIDER"
+    # Allowed providers:
+    #   openai     -> OpenAI directly (paid)
+    #   openrouter -> OpenRouter (https://openrouter.ai), supports many
+    #                 free models like meta-llama/llama-3.3-70b-instruct:free
+    #                 and google/gemini-2.0-flash-exp:free
+    #   anthropic  -> Anthropic Claude (paid)
+    llm_provider: Literal["openai", "openrouter", "anthropic"] = Field(
+        default="openrouter", alias="HUNARMAND_LLM_PROVIDER"
     )
-    llm_model: str = Field(default="gpt-4o-2024-11-20", alias="HUNARMAND_LLM_MODEL")
+    llm_model: str = Field(
+        default="meta-llama/llama-3.3-70b-instruct:free", alias="HUNARMAND_LLM_MODEL"
+    )
     llm_temperature: float = Field(default=0.2, alias="HUNARMAND_LLM_TEMPERATURE")
 
+    # Structured-output strategy. Many free OpenRouter models do not yet
+    # support `{"type": "json_schema", ...}`; some only support
+    # `{"type": "json_object"}`; a handful support neither. We pick a
+    # sensible default per provider but expose this so a deployment can
+    # opt up if their chosen model supports schema-mode.
+    llm_structured_mode: Literal["auto", "schema", "json", "prompt"] = Field(
+        default="auto", alias="HUNARMAND_LLM_STRUCTURED_MODE"
+    )
+
+    # OpenAI (paid baseline)
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
     openai_base_url: str | None = Field(default=None, alias="OPENAI_BASE_URL")
+
+    # OpenRouter (free + paid; OpenAI-compatible API)
+    openrouter_api_key: str | None = Field(default=None, alias="OPENROUTER_API_KEY")
+    openrouter_base_url: str = Field(
+        default="https://openrouter.ai/api/v1", alias="OPENROUTER_BASE_URL"
+    )
+    openrouter_site_url: str = Field(
+        default="https://hunarmand.app", alias="OPENROUTER_SITE_URL"
+    )
+    openrouter_app_name: str = Field(default="Hunarmand AI", alias="OPENROUTER_APP_NAME")
+
+    # Anthropic
     anthropic_api_key: str | None = Field(default=None, alias="ANTHROPIC_API_KEY")
 
     # ── Embeddings ────────────────────────────────────────────────────────
-    embedding_provider: Literal["openai"] = Field(
-        default="openai", alias="HUNARMAND_EMBEDDING_PROVIDER"
+    # Allowed providers:
+    #   openai -> text-embedding-3-small (paid)
+    #   jina   -> https://api.jina.ai/v1 (free tier with API key)
+    #   local  -> sentence-transformers (no API; ships in `[local-embeddings]` extra)
+    embedding_provider: Literal["openai", "jina", "local"] = Field(
+        default="local", alias="HUNARMAND_EMBEDDING_PROVIDER"
     )
     embedding_model: str = Field(
-        default="text-embedding-3-small", alias="HUNARMAND_EMBEDDING_MODEL"
+        default="intfloat/multilingual-e5-small", alias="HUNARMAND_EMBEDDING_MODEL"
     )
-    embedding_dimensions: int = Field(default=1536, alias="HUNARMAND_EMBEDDING_DIMENSIONS")
+    embedding_dimensions: int = Field(default=384, alias="HUNARMAND_EMBEDDING_DIMENSIONS")
+
+    jina_api_key: str | None = Field(default=None, alias="JINA_API_KEY")
+    jina_base_url: str = Field(default="https://api.jina.ai/v1", alias="JINA_BASE_URL")
 
     # ── ASR ────────────────────────────────────────────────────────────────
+    # Allowed entries: bhashini, ai4bharat, groq, whisper, manual
+    # (groq runs whisper-large-v3-turbo on the free tier;
+    # `whisper` here is the OpenAI Audio API, which is paid.)
     asr_ladder: str = Field(
-        default="bhashini,ai4bharat,whisper,manual", alias="HUNARMAND_ASR_LADDER"
+        default="bhashini,ai4bharat,groq,whisper,manual",
+        alias="HUNARMAND_ASR_LADDER",
     )
     asr_default_language: str = Field(default="ks", alias="HUNARMAND_ASR_DEFAULT_LANGUAGE")
     whisper_model: str = Field(default="whisper-1", alias="HUNARMAND_WHISPER_MODEL")
+
+    # Groq (free tier, OpenAI-compatible API for Whisper).
+    groq_api_key: str | None = Field(default=None, alias="GROQ_API_KEY")
+    groq_base_url: str = Field(
+        default="https://api.groq.com/openai/v1", alias="GROQ_BASE_URL"
+    )
+    groq_whisper_model: str = Field(
+        default="whisper-large-v3-turbo", alias="HUNARMAND_GROQ_WHISPER_MODEL"
+    )
 
     bhashini_api_key: str | None = Field(default=None, alias="BHASHINI_API_KEY")
     bhashini_user_id: str | None = Field(default=None, alias="BHASHINI_USER_ID")
@@ -84,10 +141,17 @@ class Settings(BaseSettings):
     ai4bharat_model: str = Field(default="ai4bharat/indicwhisper", alias="AI4BHARAT_MODEL")
 
     # ── Translation ────────────────────────────────────────────────────────
-    translation_provider: Literal["openai", "bhashini", "none"] = Field(
-        default="openai", alias="HUNARMAND_TRANSLATION_PROVIDER"
+    translation_provider: Literal["llm", "bhashini", "none"] = Field(
+        default="llm", alias="HUNARMAND_TRANSLATION_PROVIDER"
     )
-    translation_model: str = Field(default="gpt-4o-mini", alias="HUNARMAND_TRANSLATION_MODEL")
+    translation_model: str | None = Field(
+        default=None,
+        alias="HUNARMAND_TRANSLATION_MODEL",
+        description=(
+            "Model to use for LLM translation. Defaults to ``llm_model`` if not set, "
+            "so the free-tier path uses the same OpenRouter model for both."
+        ),
+    )
 
     # ── RAG ────────────────────────────────────────────────────────────────
     rag_chunk_tokens: int = Field(default=320, alias="HUNARMAND_RAG_CHUNK_TOKENS")
@@ -106,7 +170,7 @@ class Settings(BaseSettings):
     @field_validator("asr_ladder")
     @classmethod
     def _validate_ladder(cls, v: str) -> str:
-        allowed = {"bhashini", "ai4bharat", "whisper", "manual"}
+        allowed = {"bhashini", "ai4bharat", "groq", "whisper", "manual"}
         parts = [p.strip() for p in v.split(",") if p.strip()]
         bad = [p for p in parts if p not in allowed]
         if bad:
@@ -123,6 +187,10 @@ class Settings(BaseSettings):
         if self.cors_origins.strip() == "*":
             return ["*"]
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def effective_translation_model(self) -> str:
+        return self.translation_model or self.llm_model
 
 
 @lru_cache(maxsize=1)

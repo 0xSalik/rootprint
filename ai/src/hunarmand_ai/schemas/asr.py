@@ -17,6 +17,7 @@ class _Base(BaseModel):
 class AsrProvider(str, Enum):
     BHASHINI = "bhashini"
     AI4BHARAT = "ai4bharat"
+    GROQ = "groq"
     WHISPER = "whisper"
     MANUAL = "manual"
 

@@ -35,13 +35,15 @@ class Translator:
         provider = self.settings.translation_provider
         if provider == "none":
             return text
-        if provider == "openai":
-            return await self._translate_openai(text, source_language, target_language)
+        if provider == "llm":
+            return await self._translate_llm(text, source_language, target_language)
         if provider == "bhashini":
             return await self._translate_bhashini(text, source_language, target_language)
         return text
 
-    async def _translate_openai(self, text: str, source: str, target: str) -> str:
+    async def _translate_llm(self, text: str, source: str, target: str) -> str:
+        """Translate via the configured LLM (OpenAI / OpenRouter / Anthropic)."""
+
         client = get_llm_client()
         system = (
             "You are a professional translator with deep familiarity in Kashmiri (Koshur), "
@@ -61,7 +63,7 @@ class Translator:
         out = await client.generate(
             system=system,
             messages=[{"role": "user", "content": user}],
-            model=self.settings.translation_model,
+            model=self.settings.effective_translation_model,
             temperature=0.0,
             max_tokens=2048,
         )
@@ -70,9 +72,9 @@ class Translator:
     async def _translate_bhashini(self, text: str, source: str, target: str) -> str:
         # Skeleton: a real implementation would re-resolve the Bhashini
         # NMT pipeline analogous to the ASR provider. For the hackathon
-        # we degrade to OpenAI when called.
-        log.info("translator.bhashini.fallback_to_openai")
-        return await self._translate_openai(text, source, target)
+        # we degrade to LLM translation when called.
+        log.info("translator.bhashini.fallback_to_llm")
+        return await self._translate_llm(text, source, target)
 
 
 _singleton: Translator | None = None

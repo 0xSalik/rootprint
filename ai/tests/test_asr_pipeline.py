@@ -50,10 +50,13 @@ async def test_first_high_confidence_provider_wins(pipeline: ASRPipeline, monkey
     pipeline._providers[AsrProvider.BHASHINI.value] = _FakeProvider(
         name="bhashini", available=True, result=_result(AsrProvider.BHASHINI, confidence=0.92)
     )
+    pipeline._providers[AsrProvider.GROQ.value] = _FakeProvider(
+        name="groq", available=True, result=_result(AsrProvider.GROQ, confidence=0.94)
+    )
     pipeline._providers[AsrProvider.WHISPER.value] = _FakeProvider(
         name="whisper", available=True, result=_result(AsrProvider.WHISPER, confidence=0.95)
     )
-    pipeline.settings.asr_ladder = "bhashini,whisper,manual"
+    pipeline.settings.asr_ladder = "bhashini,groq,whisper,manual"
 
     async def _no_translate(*, text: str, source_language: str, target_language: str = "en") -> str:
         return f"EN({text})"
@@ -71,10 +74,13 @@ async def test_unavailable_provider_skipped(pipeline: ASRPipeline, monkeypatch: 
     pipeline._providers[AsrProvider.BHASHINI.value] = _FakeProvider(
         name="bhashini", available=False, result=None
     )
+    pipeline._providers[AsrProvider.GROQ.value] = _FakeProvider(
+        name="groq", available=False, result=None
+    )
     pipeline._providers[AsrProvider.WHISPER.value] = _FakeProvider(
         name="whisper", available=True, result=_result(AsrProvider.WHISPER, confidence=0.91)
     )
-    pipeline.settings.asr_ladder = "bhashini,whisper,manual"
+    pipeline.settings.asr_ladder = "bhashini,groq,whisper,manual"
 
     async def _no_translate(**_: Any) -> str:
         return "EN"
@@ -90,10 +96,13 @@ async def test_failure_falls_through(pipeline: ASRPipeline, monkeypatch: Any) ->
     pipeline._providers[AsrProvider.BHASHINI.value] = _FakeProvider(
         name="bhashini", available=True, result=None, raise_on_call=ASRProviderError("boom")
     )
+    pipeline._providers[AsrProvider.GROQ.value] = _FakeProvider(
+        name="groq", available=False, result=None
+    )
     pipeline._providers[AsrProvider.WHISPER.value] = _FakeProvider(
         name="whisper", available=True, result=_result(AsrProvider.WHISPER, confidence=0.88)
     )
-    pipeline.settings.asr_ladder = "bhashini,whisper,manual"
+    pipeline.settings.asr_ladder = "bhashini,groq,whisper,manual"
 
     async def _no_translate(**_: Any) -> str:
         return "EN"
@@ -112,10 +121,13 @@ async def test_low_confidence_returns_best_attempt(pipeline: ASRPipeline, monkey
         available=True,
         result=_result(AsrProvider.BHASHINI, confidence=0.4),
     )
+    pipeline._providers[AsrProvider.GROQ.value] = _FakeProvider(
+        name="groq", available=False, result=None
+    )
     pipeline._providers[AsrProvider.WHISPER.value] = _FakeProvider(
         name="whisper", available=True, result=_result(AsrProvider.WHISPER, confidence=0.5)
     )
-    pipeline.settings.asr_ladder = "bhashini,whisper,manual"
+    pipeline.settings.asr_ladder = "bhashini,groq,whisper,manual"
 
     async def _no_translate(**_: Any) -> str:
         return "EN"
