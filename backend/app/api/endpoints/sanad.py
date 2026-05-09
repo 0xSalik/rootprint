@@ -140,30 +140,45 @@ async def sign_sanad(
     else:
         material_origin = payload.get("made_at_workshop")
 
-    new_row = Sanad(
-        master_id=current_master.id,
-        craft_dna_id=None,
-        piece_name=str(piece_name)[:200],
-        material_origin=str(material_origin)[:200] if material_origin else None,
-        crypto_signature=envelope.get("signature"),
-        metadata_json=payload,
-        is_public=True,
-    )
+    try:
+        new_row = Sanad(
+            master_id=current_master.id,
+            craft_dna_id=None,
+            piece_name=str(piece_name)[:200],
+            material_origin=str(material_origin)[:200] if material_origin else None,
+            crypto_signature=envelope.get("signature"),
+            metadata_json=payload,
+            is_public=True,
+        )
+    except Exception:
+        # Construction itself can throw on type coercion errors. Log and
+        # bail out gracefully — the AI core has already persisted the
+        # crypto envelope on its side, so the artisan still has a
+        # verifiable signature.
+        log.exception(
+            "sanad.sign.construct_failed master=%s",
+            current_master.id,
+        )
+        return {**envelope, "sanad_db_id": None, "provenance_url": None}
+
     try:
         db.add(new_row)
         await db.commit()
         await db.refresh(new_row)
-    except Exception as exc:  # noqa: BLE001
-        # Defensive: if the schema still has the legacy NOT NULL constraint
-        # (pre-b2c3d4e5f6a7) or some other persistence error occurs, return
-        # the cryptographic envelope so the artisan still has a verifiable
-        # signature even if our index couldn't store the row.
-        await db.rollback()
-        log.warning(
-            "sanad.sign.persist_failed master=%s err=%s",
+    except Exception:  # noqa: BLE001
+        # Defensive net for legacy schemas (pre-b2c3d4e5f6a7) or any
+        # other persistence error. log.exception captures the full
+        # traceback so Render logs surface the root cause; the
+        # response still returns the cryptographic envelope so the
+        # caller doesn't see a 500.
+        log.exception(
+            "sanad.sign.persist_failed master=%s",
             current_master.id,
-            exc,
         )
+        try:
+            await db.rollback()
+        except Exception:
+            log.exception("sanad.sign.rollback_failed master=%s", current_master.id)
         return {**envelope, "sanad_db_id": None, "provenance_url": None}
 
     return {
