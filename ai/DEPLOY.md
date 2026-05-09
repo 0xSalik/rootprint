@@ -87,6 +87,7 @@ In your Space, go to **Settings → Variables and secrets → New secret** and a
 | `HUNARMAND_KEK_SECRET` | A 32+ byte secret. Generate locally: `python -c "import secrets; print(secrets.token_urlsafe(32))"` |
 | `HUNARMAND_DATABASE_URL` | The string from step 1.5 |
 | `HUNARMAND_CORS_ORIGINS` | Your Vercel origin, comma-separated. Add `http://localhost:3000` for local dev. Example: `https://hunarmand.vercel.app,http://localhost:3000` |
+| `HUNARMAND_SKIP_AUTO_MIGRATE` | Set to `1` if the backend's alembic owns the schema (recommended when the backend service runs alongside the AI core on the same Neon DB). |
 
 Optional but recommended:
 

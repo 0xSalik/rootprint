@@ -1,4 +1,13 @@
-"""Sanad row — one per signed authentic piece."""
+"""Sanad row — one per signed authentic piece.
+
+Stored under ``ai_sanads`` (not ``sanads``) so the AI core and the
+backend can share a Postgres database without colliding on table
+names. The backend's ``backend.app.models.models.Sanad`` is the
+buyer-facing provenance row written by Track-A's commerce flow; this
+``SanadRow`` is the AI-core's signing-side record that holds the full
+JCS-canonical payload + Ed25519 signature blob for replay-style
+verification.
+"""
 
 from __future__ import annotations
 
@@ -13,7 +22,7 @@ from .base import Base, TimestampMixin
 
 
 class SanadRow(Base, TimestampMixin):
-    __tablename__ = "sanads"
+    __tablename__ = "ai_sanads"
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
