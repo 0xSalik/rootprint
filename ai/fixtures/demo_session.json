@@ -1,0 +1,148 @@
+{
+  "master": {
+    "id": "00000000-0000-4000-8000-000000000001",
+    "full_name": "Mohammad Yusuf",
+    "name_in_koshur": "Mohammad Yousuf Sahab",
+    "craft_category": "pashmina_weaving",
+    "village": "Kanihama",
+    "district": "Budgam",
+    "started_practising_year": 1962,
+    "generation_in_practice": 4,
+    "bio_short": "Fourth-generation Kanihama pashmina weaver. Taught by his father Ghulam Mohammad. Specialises in kani-stick twill-tapestry shawls."
+  },
+  "lineage": [
+    {
+      "id": "ln-1",
+      "name": "Ghulam Mohammad",
+      "relation": "taught_by",
+      "village": "Kanihama",
+      "period_start_year": 1925,
+      "period_end_year": 1989,
+      "notes": "Father; introduced the master to the loom at age 9."
+    },
+    {
+      "id": "ln-2",
+      "name": "Habibullah Sheikh",
+      "relation": "apprentice_of",
+      "village": "Kanihama",
+      "notes": "Father's master; passed away before Mohammad Yusuf began weaving."
+    }
+  ],
+  "passes": {
+    "lineage": [
+      {
+        "id": "ln-q1",
+        "text_ks": "Mohammad Yusuf chuun naav. Bo chus Kanihama gaamuk. Mein walid Ghulam Mohammad chu mein ustaad.",
+        "text_en": "My name is Mohammad Yusuf. I am from Kanihama village. My father Ghulam Mohammad was my teacher.",
+        "duration_s": 6.8
+      },
+      {
+        "id": "ln-q2",
+        "text_ks": "Asuund silsila chu chowmuk peshe; mein dada Habibullah Sahab chu pyath suri kani-shawal banawaan.",
+        "text_en": "Ours is a fourth-generation lineage; my grandfather Habibullah Sahab first started weaving kani shawls.",
+        "duration_s": 7.4
+      },
+      {
+        "id": "ln-q3",
+        "text_ks": "Bo chus 1962 manz peshe shuru kornu, nau wari umar manz, mein walid sund pyath beth-ith.",
+        "text_en": "I started weaving in 1962, at the age of nine, sitting next to my father.",
+        "duration_s": 6.2
+      }
+    ],
+    "technique": [
+      {
+        "id": "tk-q1",
+        "text_ks": "Yi chu kani-buti technique; kani su chu lakhdaar, fer su chu reshmuk dhaaga ferkav karun.",
+        "text_en": "This is the kani-buti technique; the kani is a wooden stick, and we wrap silk thread around it.",
+        "duration_s": 7.6
+      },
+      {
+        "id": "tk-q2",
+        "text_ks": "Ek inch karuk peth chu sath se nuv knot kara; har knot chu hath sund pyath, machine kati.",
+        "text_en": "Per inch of carpet we make seven to nine knots; each knot is by hand, never by machine.",
+        "duration_s": 8.1
+      },
+      {
+        "id": "tk-q3",
+        "text_ks": "Pehl chu warpa tani parav, fer chu wuf reshmuk dhaaga changthangi mool wuchun, fer chu rangu lagav.",
+        "text_en": "First we set the warp; then we comb the changthangi wool into silk thread; then we apply colour.",
+        "duration_s": 9.3
+      },
+      {
+        "id": "tk-q4",
+        "text_ks": "Kani su chu shahtut kati banav, akh shawal banawne aase aath maas chu lagaan.",
+        "text_en": "The kani-stick is made from mulberry wood. One full shawl takes about eight months.",
+        "duration_s": 7.2
+      },
+      {
+        "id": "tk-q5",
+        "text_ks": "Galti chu paaye gov shaagird suit kani galat pakkar karav; pyath kani phati, soot phati, design rachu.",
+        "text_en": "The mistake an apprentice makes is gripping the kani wrong; if the kani slips the thread breaks and the design is ruined.",
+        "duration_s": 8.0
+      }
+    ],
+    "decisions": [
+      {
+        "id": "dc-q1",
+        "text_ks": "Wool wuchne khaatre, bo karun chus gund manz hath legith. Agar gund chu narm te thur, soit chu theek; agar khoshk chu, dyut karav.",
+        "text_en": "To judge wool, I take a lock between thumb and forefinger and roll it. If the lock is soft and slightly oily, the lot is right; if it is dry, we reject it.",
+        "duration_s": 9.4
+      },
+      {
+        "id": "dc-q2",
+        "text_ks": "Sard mausam manz warpa tension chu tang, fer chu zaror reshmu pyath panieek halka chiknav, na te dhaaga phathi.",
+        "text_en": "In cold weather the warp tension is tight, so I lightly mist the silk thread with water; otherwise the thread snaps.",
+        "duration_s": 9.2
+      },
+      {
+        "id": "dc-q3",
+        "text_ks": "Mein walid gaov mein zindagi sund sa-zad galti theek kar; bo paani-rang sa-zad lagaaw, ti panie ziyaad lagaaw.",
+        "text_en": "The mistake my father corrected most often when I was young: I would apply too much water to the colour, and that would over-dilute the dye.",
+        "duration_s": 9.0
+      },
+      {
+        "id": "dc-q4",
+        "text_ks": "Yim dukandaar saath kor wadla, soit kalu pheri pyath wadla; theek dukandaar chu ek mausam manz akh dah lota wadalan, ziyaad nat.",
+        "text_en": "If a supplier changes the dye lot mid-season, that is a warning sign; a trustworthy supplier sells from one batch per season, not more.",
+        "duration_s": 9.6
+      }
+    ],
+    "suppliers": [
+      {
+        "id": "sp-q1",
+        "text_ks": "Soot chu Ladakh, Changthang ilaakas pyath aatsh; yim phaan changpa kabila aase; rabita chu chui-tih saal poran.",
+        "text_en": "Wool comes from Ladakh's Changthang region; we buy from the Changpa nomads. The relationship is over forty years old.",
+        "duration_s": 8.6
+      },
+      {
+        "id": "sp-q2",
+        "text_ks": "Reshmu Banaras pyath aatsh; rangu chu Srinagar manz Maharaj-Gunj qadeem dukan pyath aatsh, naam zaror lukheth nay.",
+        "text_en": "Silk comes from Banaras; dyes come from an old shop in Maharaj Gunj, Srinagar — I do not want the name made public.",
+        "duration_s": 8.3
+      },
+      {
+        "id": "sp-q3",
+        "text_ks": "Wool aane ka mausam chu november manz; soit chu sard te seal-pak, theek wool ki nishani chu.",
+        "text_en": "The wool arrives in November; the cold and the smell-of-fold are the signs of a good lot.",
+        "duration_s": 7.8
+      }
+    ]
+  },
+  "sanad": {
+    "piece": {
+      "sanad_id": "KNH-PSH-2025-0042",
+      "piece_id": "shawl-2025-0042",
+      "technique_ids": ["tech-kani-buti"],
+      "technique_names": ["Kani-buti twill-tapestry weaving"],
+      "materials_summary": ["Changthangi pashmina wool", "Banarasi silk warp", "Natural madder dye"],
+      "made_at_workshop": "Kanihama, Budgam",
+      "completed_on": "2025-04-12T00:00:00+00:00",
+      "short_summary": "Kani-buti pashmina shawl, 4th-generation Kanihama lineage, 8 months on the loom.",
+      "fair_price_band": "INR 38000–55000",
+      "extras": {
+        "knot_density_per_inch": 8,
+        "weave_months": 8
+      }
+    }
+  }
+}
