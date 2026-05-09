@@ -8,6 +8,7 @@ from pathlib import Path
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
 from ..asr import get_asr_pipeline
+from ..fallbacks import build_asr_fallback, run_with_fallback
 from ..schemas.asr import AsrProvider, AsrResult
 
 router = APIRouter(prefix="/asr", tags=["asr"])
@@ -30,13 +31,16 @@ async def transcribe(
         tmp_path = fh.name
 
     try:
-        result = await pipeline.transcribe_audio(
-            audio_path=tmp_path,
-            language_hint=language_hint,
-            translate_to_english=translate_to_english,
-            prefer_provider=prefer_provider,
+        return await run_with_fallback(
+            coro=pipeline.transcribe_audio(
+                audio_path=tmp_path,
+                language_hint=language_hint,
+                translate_to_english=translate_to_english,
+                prefer_provider=prefer_provider,
+            ),
+            fallback=lambda: build_asr_fallback(language_hint=language_hint),
+            policy="asr",
         )
-        return result
     finally:
         Path(tmp_path).unlink(missing_ok=True)
 
