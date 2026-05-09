@@ -13,6 +13,29 @@ A Tacit Knowledge Operating System for Kashmir's heritage artisans.
 
 The compiled hackathon pitch lives at [`hunarmand_pitch.pdf`](./hunarmand_pitch.pdf).
 
+## Try the live demo
+
+The demo backend uses a mock OTP. Any phone number signs in; the OTP is always `123456`. Two accounts are surfaced as one-tap "Try as ..." buttons on the login page.
+
+| Account | Phone | OTP | Lands on | Sees |
+|---|---|---|---|---|
+| Artisan (Mohammad Yusuf, 4th-gen Kanihama pashmina master, seeded by `backend/scripts/reset_demo.py`) | `+919999999999` | `123456` | `/studio` | own workshops, vault sessions, issued Sanads, profile editor |
+| Patron (buyer / collector) | `+918888888888` | `123456` | `/account` | own bookings, own orders, browse links |
+
+Both accounts can navigate the entire public surface (`/`, `/bazaar`, `/workshops`, `/sanad/*`, `/artisan/*`, `/craft/*`). The phone number determines the default dashboard after login. After signing in as the artisan and going to `/studio/workshops` you can add, hide, or delete workshops live against the Render backend.
+
+To submit a booking flow end-to-end:
+
+1. Sign in as the patron at https://hunarmand.sal.lol/login.
+2. Browse `/workshops`, click any tile, complete the booking.
+3. Visit `/account` to see the booking show up under "Workshops you've booked".
+
+To submit an order flow end-to-end:
+
+1. Sign in as the patron.
+2. Browse `/bazaar`, pick a bundle, run through checkout (Stripe test mode; the demo skips actual card capture).
+3. Visit `/account` to see the order appear under "Pieces in your collection".
+
 ---
 
 ## A scene that frames the work
@@ -252,11 +275,41 @@ the badge know in one glance whether the chain is healthy.
 
 ### Frontend
 
-The frontend is a Next.js application deployed on Vercel under the
-custom domain `hunarmand.sal.lol`. It consumes the backend exclusively
-through `NEXT_PUBLIC_HUNARMAND_API`. Phone OTP login (mock during the
-demo), JWT in `localStorage`, and the rest of the surface is RESTful
-JSON.
+The frontend is a Next.js 16 application (React 19, Tailwind 4)
+deployed on Vercel under the custom domain `hunarmand.sal.lol`. It
+consumes the backend exclusively through `NEXT_PUBLIC_HUNARMAND_API`.
+Phone OTP login (mock during the demo), JWT in `localStorage`, and
+the rest of the surface is RESTful JSON.
+
+The route surface splits into three layers:
+
+* **Public showcase** for an evaluator who arrives without a session:
+  `/` (craft entry), `/landing-editorial`, `/craft/[slug]`,
+  `/artisan/[slug]`, `/sanad/[piece-id]`, `/sanad/[piece-id]/[lang]`,
+  `/bazaar`, `/workshops`, `/workshop/[id]`, the full booking flow
+  under `/booking/[workshop-id]/...`, plus `/demo` and
+  `/design-system` reference pages.
+* **Auth** at `/login` with phone-OTP and one-tap demo account fills.
+  Tokens persist in `localStorage`; refreshing a logged-in page keeps
+  the session.
+* **Authenticated dashboards** that talk to the live backend:
+  `/account` (patron bookings + orders),
+  `/studio` (artisan overview),
+  `/studio/workshops` (CRUD against `/api/v1/workshops`),
+  `/studio/profile` (`PUT /api/v1/masters/me`).
+
+The authoring stack is in `hunarmand/src/lib/`:
+
+* `env.ts` — `NEXT_PUBLIC_HUNARMAND_API` resolution + role inference
+  from phone number.
+* `api.ts` — typed fetch wrapper for every documented backend route
+  with a single `ApiError` shape on failures.
+* `auth.tsx` — `<AuthProvider>` + `useAuth()` + `useRequireAuth()`
+  hook for client components that need to gate on the JWT.
+
+Site navigation is auth-aware: signed-out visitors see "Sign in" and
+"Try the demo"; signed-in users see "Studio" or "Account" (chosen by
+phone-inferred role) and "Sign out".
 
 ## Engineering decisions worth defending
 
@@ -405,8 +458,14 @@ pytest -q                            # 39/39 passing
 ### Frontend
 
 ```
-NEXT_PUBLIC_HUNARMAND_API=https://hunarmand-backend.onrender.com
-# In Vercel, set this env var on the project, push, deploy.
+cd hunarmand
+npm ci
+cp .env.example .env.local         # NEXT_PUBLIC_HUNARMAND_API=https://hunarmand-backend.onrender.com
+npm run dev                        # http://localhost:3000
+
+# Production:
+npm run build                      # Next.js 16 / Turbopack
+# In Vercel: set NEXT_PUBLIC_HUNARMAND_API on the project, push, deploy.
 ```
 
 ## Verifying the deployment
