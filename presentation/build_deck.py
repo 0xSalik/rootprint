@@ -550,6 +550,52 @@ def slide_disappearance(prs):
         color=ROUGE, weight_pt=1.2,
     )
 
+    # Coda: a micro 70/30 bar on the survival economics, sitting in the
+    # right column below the rouge hairline. One tiny visual that says
+    # "and what survives, doesn't keep what it earns" without a paragraph
+    # of body copy. Walnut + faded ink only; rouge stays reserved for
+    # the hunarmand keystone on slide 03.
+    micro_top = rouge_y + 0.5
+    micro_w = 3.2
+    micro_h = 0.16
+    micro_left = SLIDE_W - 0.7 - micro_w
+    add_text(
+        slide,
+        "and the survivors keep this much:",
+        left=micro_left - 0.4, top=micro_top - 0.32, width=micro_w + 0.4, height=0.22,
+        font_name=JBM_LIGHT, size=9, color=FADED_INK,
+        align=PP_ALIGN.RIGHT, spacing_hpt=60,
+    )
+    seg_left_w = micro_w * 0.72  # middleman ~70%
+    add_filled_rect(
+        slide, left=micro_left, top=micro_top,
+        width=seg_left_w, height=micro_h, fill=WALNUT,
+    )
+    add_filled_rect(
+        slide, left=micro_left + seg_left_w, top=micro_top,
+        width=micro_w - seg_left_w, height=micro_h, fill=FADED_35,
+    )
+    # Tiny labels under each segment. "30" sits bold under the artisan
+    # share so it lands as the punctum of the slide, mirroring the
+    # economic insight without screaming it.
+    add_text(
+        slide,
+        "middleman  ·  70",
+        left=micro_left, top=micro_top + micro_h + 0.04,
+        width=seg_left_w, height=0.2,
+        font_name=JBM_LIGHT, size=8, color=FADED_INK,
+        spacing_hpt=60,
+    )
+    add_text(
+        slide,
+        "master  ·  30",
+        left=micro_left + seg_left_w + 0.05,
+        top=micro_top + micro_h + 0.04,
+        width=micro_w - seg_left_w + 0.4, height=0.2,
+        font_name=JBM_REG, size=8, bold=True, color=WALNUT,
+        align=PP_ALIGN.RIGHT, spacing_hpt=60,
+    )
+
     add_footer(slide, 2)
 
 
@@ -675,7 +721,7 @@ def slide_solution(prs):
 
 
 # ─────────────────────────────────────────────────────────────────────
-#  SLIDE 04 — methodology (talim insight + 5 stages of the AI pipeline)
+#  SLIDE 04 — what we offer (talim insight + four layers, per user)
 # ─────────────────────────────────────────────────────────────────────
 def slide_methodology(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
@@ -683,7 +729,7 @@ def slide_methodology(prs):
 
     # Top caption
     add_text(slide,
-             "methodology / how tacit knowledge becomes infrastructure",
+             "what we offer / four layers, one tacit knowledge spine",
              left=0.6, top=0.45, width=12.0, height=0.25,
              font_name=JBM_LIGHT, size=9, color=FADED_INK,
              spacing_hpt=120)
@@ -721,61 +767,67 @@ def slide_methodology(prs):
              x2=2.6, y2=4.85,
              color=ROUGE, weight_pt=1.0)
 
-    # Insight body, beneath the glyph. Frames what the methodology
-    # *produces* without echoing the closing slide's quote.
+    # Insight body, beneath the glyph. Frames the four layers as a
+    # single spine grown from the talim insight, not a feature menu.
     insight_top = 4.95
     add_text(slide,
-             "twelve hours of speech.\nfour hundred fields.\none signed artefact.",
-             left=0.6, top=insight_top, width=4.6, height=1.0,
+             "one tacit knowledge spine.\nfour ways for the master\nto make a living from it.",
+             left=0.6, top=insight_top, width=4.8, height=1.0,
              font_name=JBM_REG, size=14, bold=True, color=WALNUT,
              line_spacing=1.4)
     add_text(slide,
-             "the master's tacit knowledge,\nstructured under their own keypair,\nowned by the master in perpetuity.",
-             left=0.6, top=insight_top + 1.05, width=5.0, height=1.0,
+             "what kashmir invented in the loom\nwe gave a database, a key, a marketplace,\nand a calendar.",
+             left=0.6, top=insight_top + 1.05, width=5.2, height=1.0,
              font_name=JBM_LIGHT, size=11, color=FADED_INK, line_spacing=1.5)
 
-    # ── Right half: the 5-stage methodology pipeline ──
-    pipe_left = 6.4
+    # ── Right half: the four layers ──
+    pipe_left = 6.2
     pipe_top = 1.05
-    row_h = 0.95
-    stages = [
-        ("01", "session",
-         "master in own workshop, interview led in koshur"),
-        ("02", "transcribe",
-         "bhashini  >  ai4bharat  >  groq  >  whisper, ladder"),
-        ("03", "extract",
-         "multi-pass llm, strict json schema, repair loop"),
-        ("04", "sign",
-         "ed25519 over rfc 8785 jcs, one keypair per master"),
-        ("05", "index",
-         "pgvector embeddings, public api in under a second"),
+    row_h = 1.42
+    layers = [
+        ("01", "vault",
+         "ai-led capture  ·  craft dna  ·  transcript replay",
+         "for the artisan"),
+        ("02", "sanad",
+         "ed25519 provenance  ·  scan-to-verify qr  ·  public registry",
+         "for the buyer"),
+        ("03", "ustaad",
+         "workshop calendar  ·  otp booking  ·  seasonal availability",
+         "for the learner"),
+        ("04", "bazaar",
+         "curated bundles  ·  checkout  ·  order tracking",
+         "for the collector"),
     ]
-    for i, (num, label, caption) in enumerate(stages):
+    feat_w = SLIDE_W - pipe_left - 1.05 - 0.6
+    for i, (num, label, features, audience) in enumerate(layers):
         ry = pipe_top + i * row_h
-        # number, in Light, big, faded ink for hierarchy
         add_text(slide, num,
                  left=pipe_left, top=ry, width=0.9, height=0.7,
                  font_name=JBM_LIGHT, size=36, color=FADED_60,
                  anchor=MSO_ANCHOR.TOP)
-        # walnut hairline under each row
-        add_line(slide, x1=pipe_left + 1.0, y1=ry + 0.1,
-                 x2=SLIDE_W - 0.6, y2=ry + 0.1,
+        add_line(slide, x1=pipe_left + 1.0, y1=ry + 0.08,
+                 x2=SLIDE_W - 0.6, y2=ry + 0.08,
                  color=EDGE, weight_pt=0.5)
-        # label
+        # The sanad label is rouge to anchor the keystone visually
+        # across the deck.
+        label_color = ROUGE if label == "sanad" else WALNUT
         add_text(slide, label,
                  left=pipe_left + 1.05, top=ry + 0.18, width=2.0, height=0.32,
-                 font_name=JBM_REG, size=14, bold=True, color=WALNUT)
-        # caption
-        add_text(slide, caption,
-                 left=pipe_left + 1.05, top=ry + 0.46, width=SLIDE_W - pipe_left - 1.6,
-                 height=0.32,
+                 font_name=JBM_REG, size=15, bold=True, color=label_color)
+        add_text(slide, features,
+                 left=pipe_left + 1.05, top=ry + 0.5,
+                 width=feat_w, height=0.32,
                  font_name=JBM_LIGHT, size=10, color=FADED_INK, spacing_hpt=60)
+        add_text(slide, audience,
+                 left=pipe_left + 1.05, top=ry + 0.85,
+                 width=feat_w, height=0.28,
+                 font_name=JBM_LIGHT, size=9, color=WALNUT_60, spacing_hpt=120)
 
     add_footer(slide, 4)
 
 
 # ─────────────────────────────────────────────────────────────────────
-#  SLIDE 05 — technology (deployed stack + live numbers)
+#  SLIDE 05 — technology (manifest + request-flow pipeline)
 # ─────────────────────────────────────────────────────────────────────
 def slide_technology(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
@@ -783,77 +835,96 @@ def slide_technology(prs):
 
     # Top caption
     add_text(slide,
-             "technology / deployed today, free tier, queryable now",
+             "technology / what carries the work",
              left=0.6, top=0.45, width=12.0, height=0.25,
              font_name=JBM_LIGHT, size=9, color=FADED_INK,
              spacing_hpt=120)
 
-    # ── Left two-thirds: the manifest ──
+    # ── Left two-thirds: a focused manifest of the technical choices ──
     manifest_x = 0.6
     manifest_top = 1.1
     rows = [
-        ("frontend",  "next.js 16  ·  vercel  ·  hunarmand.sal.lol"),
-        ("backend",   "fastapi  ·  render  ·  alembic on every deploy"),
-        ("ai core",   "fastapi  ·  hugging face spaces  ·  ed25519 sanad service"),
-        ("postgres",  "neon  ·  pgvector  ·  shared between backend + ai core"),
-        ("asr",       "bhashini  >  ai4bharat  >  groq  >  hf inference  >  whisper"),
-        ("llm",       "openrouter  ·  free + premium models behind one interface"),
-        ("embeddings","sentence-transformers  ·  intfloat / multilingual-e5-small"),
-        ("signature", "ed25519 over rfc 8785 jcs  ·  jws-compact qr  ·  offline verify"),
+        ("asr",
+         "bhashini  >  ai4bharat  >  groq  >  whisper, with auto-fallback"),
+        ("llm",
+         "openrouter aggregation, provider-agnostic structured output"),
+        ("extraction",
+         "multi-pass interview, strict json schema, repair loop"),
+        ("embeddings",
+         "sentence-transformers, multilingual-e5-small, 384-dim"),
+        ("retrieval",
+         "pgvector cosine over chunked, timestamped transcripts"),
+        ("signature",
+         "ed25519 over rfc 8785 jcs, jws-compact qr, offline verify"),
+        ("storage",
+         "neon postgres, async sqlalchemy, alembic-managed schema"),
     ]
-    row_h = 0.42
+    row_h = 0.5
     for i, (key, val) in enumerate(rows):
         ry = manifest_top + i * row_h
-        # key column
         add_text(slide, key,
-                 left=manifest_x, top=ry, width=1.6, height=0.32,
-                 font_name=JBM_REG, size=11, bold=True, color=WALNUT,
+                 left=manifest_x, top=ry, width=1.7, height=0.32,
+                 font_name=JBM_REG, size=12, bold=True, color=WALNUT,
                  spacing_hpt=60)
-        # equals separator
         add_text(slide, "·",
-                 left=manifest_x + 1.65, top=ry, width=0.2, height=0.32,
-                 font_name=JBM_LIGHT, size=11, color=WALNUT_40)
-        # value column
+                 left=manifest_x + 1.75, top=ry, width=0.2, height=0.32,
+                 font_name=JBM_LIGHT, size=12, color=WALNUT_40)
         add_text(slide, val,
-                 left=manifest_x + 1.95, top=ry, width=7.5, height=0.32,
+                 left=manifest_x + 2.05, top=ry, width=7.0, height=0.32,
                  font_name=JBM_LIGHT, size=11, color=FADED_INK)
 
-    # Closing line under the manifest
-    closing_y = manifest_top + len(rows) * row_h + 0.25
-    add_text(slide,
-             "every dependency above is on a free tier today.",
-             left=manifest_x, top=closing_y, width=10.0, height=0.32,
-             font_name=JBM_REG, size=12, bold=True, color=WALNUT)
-
-    # ── Right column: the live numbers ──
-    nums_x = 10.4
-    nums_top = 1.1
-    nums = [
-        ("18",   "seeded\nartisan masters"),
-        ("54",   "bookable\nworkshops"),
-        ("2.8s", "median latency,\nsign + persist"),
+    # ── Right third: a vertical request-flow pipeline showing what
+    # actually happens inside the AI core when a master speaks. The
+    # node-and-line composition mirrors the solution slide so the deck
+    # reads as visually consistent across the architectural slides. ──
+    pipe_x = 11.1
+    pipe_top = 1.1
+    stages = [
+        "audio in",
+        "asr ladder",
+        "llm extract",
+        "schema + repair",
+        "ed25519 sign",
+        "index + retrieve",
     ]
-    spacing = 1.55
-    for i, (n, cap) in enumerate(nums):
-        y = nums_top + i * spacing
-        add_text(slide, n,
-                 left=nums_x, top=y, width=2.5, height=0.95,
-                 font_name=JBM_LIGHT, size=64, color=WALNUT,
-                 anchor=MSO_ANCHOR.TOP)
-        add_text(slide, cap,
-                 left=nums_x, top=y + 0.95, width=2.5, height=0.55,
-                 font_name=JBM_LIGHT, size=9, color=FADED_INK,
-                 spacing_hpt=60, line_spacing=1.4)
+    spacing = 0.78
+    for i, label in enumerate(stages):
+        cy = pipe_top + i * spacing
+        is_sign = (label == "ed25519 sign")
+        add_disk(slide,
+                 cx=pipe_x, cy=cy,
+                 diameter_pt=10 if not is_sign else 12,
+                 fill=ROUGE if is_sign else WALNUT)
+        add_text(slide, label,
+                 left=pipe_x - 1.85, top=cy - 0.13, width=1.7, height=0.32,
+                 font_name=JBM_LIGHT, size=10, color=FADED_INK,
+                 align=PP_ALIGN.RIGHT, spacing_hpt=60)
+        if i < len(stages) - 1:
+            d_in = (10 if not is_sign else 12) / 72.0
+            next_is_sign = stages[i + 1] == "ed25519 sign"
+            d_next_in = (10 if not next_is_sign else 12) / 72.0
+            add_line(slide,
+                     x1=pipe_x, y1=cy + d_in / 2 + 0.02,
+                     x2=pipe_x, y2=cy + spacing - d_next_in / 2 - 0.02,
+                     color=WALNUT, weight_pt=0.75)
 
-    # Punch line at the bottom
-    punch_y = SLIDE_H - 0.85
-    add_disk(slide, cx=0.7, cy=punch_y + 0.11, diameter_pt=8, fill=ROUGE)
+    # Caption above the pipeline
+    add_text(slide, "request flow",
+             left=pipe_x - 1.85, top=pipe_top - 0.45, width=1.7, height=0.28,
+             font_name=JBM_REG, size=10, bold=True, color=WALNUT,
+             align=PP_ALIGN.RIGHT)
+
+    # Closing line at the bottom — about architectural philosophy, not
+    # demo status. No deployment claims, no live numbers, no free-tier
+    # framing.
+    closing_y = SLIDE_H - 0.95
     add_text(slide,
-             "every number is queryable from the public api right now.",
-             left=0.95, top=punch_y, width=10.5, height=0.32,
-             font_name=JBM_REG, size=12, bold=True, color=WALNUT)
+             "every provider has a fallback.  every signature verifies offline.",
+             left=manifest_x, top=closing_y, width=10.5, height=0.32,
+             font_name=JBM_REG, size=13, bold=True, color=WALNUT)
     add_line(slide,
-             x1=0.95, y1=punch_y + 0.34, x2=0.95 + 2.4, y2=punch_y + 0.34,
+             x1=manifest_x, y1=closing_y + 0.34,
+             x2=manifest_x + 2.6, y2=closing_y + 0.34,
              color=ROUGE, weight_pt=0.9)
 
     add_footer(slide, 5)
