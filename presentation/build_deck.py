@@ -265,7 +265,7 @@ SLIDE_W = 13.333
 SLIDE_H = 7.5
 
 
-def add_footer(slide, n: int, total: int = 7) -> None:
+def add_footer(slide, n: int, total: int = 6) -> None:
     # Wordmark "hunarmand"
     add_text(
         slide,
@@ -336,28 +336,89 @@ def slide_cover(prs):
         color=ROUGE, weight_pt=0.9,
     )
 
-    # Right metadata stack, right-anchored. Box ends 0.6" from edge.
+    # Tagline under the wordmark, set in faded ink with breathing room.
+    add_text(
+        slide,
+        "we treat what the master never wrote down\nas captureable, queryable, ownable infrastructure.",
+        left=0.6, top=line_y + 0.25, width=8.0, height=0.85,
+        font_name=JBM_LIGHT, size=14, color=FADED_INK,
+        line_spacing=1.45,
+    )
+
+    # Vertical talim motif on the right side — a small column of angled
+    # walnut strokes that ties visually to the methodology slide and
+    # gives the cover a craft-rooted ornament instead of corporate chrome.
+    motif_x = SLIDE_W - 1.6
+    motif_top = 1.55
+    cell_h = 0.55
+    cell_w = 0.34
+    import random as _r
+    _r.seed(11)
+    for i in range(7):
+        cy = motif_top + i * cell_h
+        ax1 = motif_x - cell_w / 2 + _r.uniform(0.02, 0.06)
+        ay1 = cy + _r.uniform(0.04, 0.10)
+        ax2 = motif_x + _r.uniform(-0.02, 0.06)
+        ay2 = cy + cell_h * 0.45 + _r.uniform(-0.04, 0.04)
+        add_line(slide, x1=ax1, y1=ay1, x2=ax2, y2=ay2,
+                 color=WALNUT, weight_pt=0.8)
+        bx1 = motif_x + _r.uniform(-0.03, 0.05)
+        by1 = cy + cell_h * 0.40 + _r.uniform(-0.03, 0.04)
+        bx2 = motif_x + cell_w / 2 - _r.uniform(0.02, 0.07)
+        by2 = cy + cell_h * 0.85 + _r.uniform(-0.03, 0.04)
+        add_line(slide, x1=bx1, y1=by1, x2=bx2, y2=by2,
+                 color=WALNUT, weight_pt=0.8)
+
+    # Caption next to the motif, oriented as a margin gloss.
+    add_text(
+        slide,
+        "talim, kanihama,\nc. 1820.  the script\nthe master kept.",
+        left=motif_x - 2.4, top=motif_top + 0.6, width=2.2, height=1.0,
+        font_name=JBM_LIGHT, size=9, color=FADED_INK,
+        align=PP_ALIGN.RIGHT, spacing_hpt=60, line_spacing=1.5,
+    )
+
+    # Team imprint, bottom-left. "bitwise" reads as the publisher mark
+    # of the work, with srinagar / 2026 as the colophon line beneath.
+    imprint_y = SLIDE_H - 1.1
+    add_text(
+        slide,
+        "bitwise",
+        left=0.6, top=imprint_y, width=3.0, height=0.4,
+        font_name=JBM_REG, size=18, bold=True, color=WALNUT,
+    )
+    # Tiny gold rule under the team mark, mirroring the rouge under the
+    # wordmark — the gold thread that runs through the website's palette.
+    add_line(
+        slide,
+        x1=0.6, y1=imprint_y + 0.34,
+        x2=0.6 + 0.7, y2=imprint_y + 0.34,
+        color=GOLD, weight_pt=0.9,
+    )
+    add_text(
+        slide,
+        "srinagar  ·  2026  ·  v 0.1 hackathon build",
+        left=0.6, top=imprint_y + 0.42, width=6.0, height=0.25,
+        font_name=JBM_LIGHT, size=9, color=FADED_INK,
+        spacing_hpt=120,
+    )
+
+    # Right metadata, anchored above the footer, right-aligned.
     meta_w = 5.6
     meta_left = SLIDE_W - 0.6 - meta_w
-    meta_y = SLIDE_H / 2 - 0.45
-    for i, line in enumerate([
-        "v 0.1 / hackathon build",
-        "nit srinagar / top 15",
-        "neon pgvector / hf spaces / render / vercel",
-    ]):
-        add_text(
-            slide,
-            line,
-            left=meta_left, top=meta_y + i * 0.32, width=meta_w, height=0.28,
-            font_name=JBM_LIGHT, size=9, color=FADED_INK,
-            align=PP_ALIGN.RIGHT, spacing_hpt=60,
-        )
+    add_text(
+        slide,
+        "neon pgvector  ·  hf spaces  ·  render  ·  vercel",
+        left=meta_left, top=imprint_y + 0.42, width=meta_w, height=0.28,
+        font_name=JBM_LIGHT, size=9, color=FADED_INK,
+        align=PP_ALIGN.RIGHT, spacing_hpt=120,
+    )
 
-    # Gold dot, low-right but clear of the footer column
+    # Gold leaf, low-right, clear of the footer column.
     add_disk(
         slide,
-        cx=SLIDE_W - 0.55, cy=SLIDE_H - 1.05,
-        diameter_pt=6, fill=GOLD,
+        cx=SLIDE_W - 0.55, cy=SLIDE_H - 1.5,
+        diameter_pt=8, fill=GOLD,
     )
 
     add_footer(slide, 1)
@@ -493,7 +554,313 @@ def slide_disappearance(prs):
 
 
 # ─────────────────────────────────────────────────────────────────────
-#  SLIDE 03 — the insight (talim ↔ craft DNA)
+#  SLIDE 03 — the solution (4-layer system + value capture)
+# ─────────────────────────────────────────────────────────────────────
+def slide_solution(prs):
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_parchment_bg(slide, SLIDE_W, SLIDE_H)
+
+    # Top caption
+    add_text(
+        slide,
+        "solution / four interlocking layers, anchored on cryptographic provenance",
+        left=0.6, top=0.45, width=12.0, height=0.25,
+        font_name=JBM_LIGHT, size=9, color=FADED_INK,
+        spacing_hpt=120,
+    )
+
+    # Diagonal pipeline of the four layers, slightly compressed so the
+    # economics bands fit underneath.
+    nodes = [
+        # (x, y, diameter_pt, fill, label, function)
+        (1.2,  1.4,  10, WALNUT, "vault",
+         "captures what the master never wrote down"),
+        (4.2,  2.55, 12, ROUGE,  "sanad",
+         "signs the piece against the master's own keypair"),
+        (7.2,  3.7,  10, WALNUT, "ustaad",
+         "sells the master's time, not the middleman's"),
+        (10.2, 4.85, 10, WALNUT, "bazaar",
+         "sells the object with provenance attached"),
+    ]
+    import math
+    for i in range(len(nodes) - 1):
+        x1, y1, d1, *_ = nodes[i]
+        x2, y2, d2, *_ = nodes[i + 1]
+        d1_in, d2_in = d1 / 72.0, d2 / 72.0
+        dx, dy = x2 - x1, y2 - y1
+        L = math.hypot(dx, dy)
+        ux, uy = dx / L, dy / L
+        sx, sy = x1 + ux * d1_in / 2, y1 + uy * d1_in / 2
+        ex, ey = x2 - ux * d2_in / 2, y2 - uy * d2_in / 2
+        add_line(slide, x1=sx, y1=sy, x2=ex, y2=ey,
+                 color=WALNUT, weight_pt=0.9)
+    for x, y, d, fill, label, fn in nodes:
+        add_disk(slide, cx=x, cy=y, diameter_pt=d, fill=fill)
+        label_x = x + (d / 72.0) / 2 + 0.22
+        avail_w = max(2.0, SLIDE_W - label_x - 0.6)
+        add_text(slide, label,
+                 left=label_x, top=y - 0.32, width=avail_w, height=0.32,
+                 font_name=JBM_REG, size=15, bold=True, color=WALNUT)
+        add_text(slide, fn,
+                 left=label_x, top=y - 0.04, width=avail_w, height=0.32,
+                 font_name=JBM_LIGHT, size=10, color=FADED_INK,
+                 spacing_hpt=60)
+
+    # Keystone gloss, anchored to sanad with a faint dotted leader.
+    sanad_x, sanad_y = nodes[1][0], nodes[1][1]
+    keystone_left = 9.8
+    keystone_y = 0.85
+    add_line(slide, x1=keystone_left, y1=keystone_y,
+             x2=keystone_left + 1.4, y2=keystone_y,
+             color=ROUGE, weight_pt=1.0)
+    add_text(slide, "the keystone",
+             left=keystone_left, top=keystone_y + 0.08, width=2.6, height=0.32,
+             font_name=JBM_REG, size=11, bold=True, color=WALNUT)
+    add_text(slide,
+             "ed25519 + rfc 8785 jcs.\na counterfeit shawl can be made.\na sanad signed by mohammad yusuf cannot.",
+             left=keystone_left, top=keystone_y + 0.36, width=3.3, height=1.0,
+             font_name=JBM_LIGHT, size=9, color=FADED_INK,
+             spacing_hpt=60, line_spacing=1.5)
+    add_line(slide,
+             x1=keystone_left + 0.1, y1=keystone_y + 1.2,
+             x2=sanad_x + 0.18, y2=sanad_y - 0.12,
+             color=WALNUT_30, weight_pt=0.5, dash="sysDot")
+
+    # Economics bands, lower-third of the slide. Anchored low enough
+    # to clear the bazaar disk above and high enough that the bottom
+    # caption never grazes the footer at y=6.95.
+    bar_x = 1.8
+    bar_w = 9.0
+    bar_h = 0.28
+    top1 = 5.4
+
+    # today bar — captions sit BELOW for consistency with hunarmand bar
+    add_text(slide, "today",
+             left=0.6, top=top1 + (bar_h - 0.22) / 2, width=1.1, height=0.32,
+             font_name=JBM_REG, size=10, bold=True, color=WALNUT)
+    seg1_w = bar_w * 0.78
+    add_filled_rect(slide, left=bar_x, top=top1, width=seg1_w, height=bar_h,
+                    fill=WALNUT)
+    add_filled_rect(slide, left=bar_x + seg1_w, top=top1,
+                    width=bar_w - seg1_w, height=bar_h, fill=FADED_35)
+    add_text(slide, "middleman chain  ·  70 to 85 percent",
+             left=bar_x + 0.05, top=top1 + bar_h + 0.04, width=seg1_w, height=0.22,
+             font_name=JBM_LIGHT, size=9, color=FADED_INK, spacing_hpt=60)
+    add_text(slide, "artisan  ·  15 to 30 percent",
+             left=bar_x + seg1_w + 0.05, top=top1 + bar_h + 0.04,
+             width=bar_w - seg1_w + 1.6, height=0.22,
+             font_name=JBM_LIGHT, size=9, color=FADED_INK, spacing_hpt=60)
+
+    # hunarmand bar
+    top2 = top1 + bar_h + 0.45
+    add_text(slide, "hunarmand",
+             left=0.6, top=top2 + (bar_h - 0.22) / 2, width=1.1, height=0.32,
+             font_name=JBM_REG, size=10, bold=True, color=ROUGE)
+    seg1b_w = bar_w * 0.08
+    add_filled_rect(slide, left=bar_x, top=top2, width=seg1b_w, height=bar_h,
+                    fill=ROUGE)
+    add_filled_rect(slide, left=bar_x + seg1b_w, top=top2,
+                    width=bar_w - seg1b_w, height=bar_h, fill=WALNUT)
+    add_text(slide, "platform  ·  6 to 9 percent",
+             left=bar_x - 1.6, top=top2 + bar_h + 0.04,
+             width=1.6 + seg1b_w - 0.05, height=0.22,
+             font_name=JBM_LIGHT, size=9, color=FADED_INK,
+             align=PP_ALIGN.RIGHT, spacing_hpt=60)
+    add_text(slide, "artisan  ·  91 to 94 percent",
+             left=bar_x + seg1b_w + 0.15, top=top2 + bar_h + 0.04,
+             width=bar_w - seg1b_w, height=0.22,
+             font_name=JBM_LIGHT, size=9, color=FADED_INK, spacing_hpt=60)
+
+    add_footer(slide, 3)
+
+
+# ─────────────────────────────────────────────────────────────────────
+#  SLIDE 04 — methodology (talim insight + 5 stages of the AI pipeline)
+# ─────────────────────────────────────────────────────────────────────
+def slide_methodology(prs):
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_parchment_bg(slide, SLIDE_W, SLIDE_H)
+
+    # Top caption
+    add_text(slide,
+             "methodology / how tacit knowledge becomes infrastructure",
+             left=0.6, top=0.45, width=12.0, height=0.25,
+             font_name=JBM_LIGHT, size=9, color=FADED_INK,
+             spacing_hpt=120)
+
+    # ── Left half: the talim insight (compact) ──
+    # Glyph stack, 6 cells
+    glyph_x = 1.4
+    glyph_top = 1.1
+    cell_h = 0.5
+    cell_w = 0.32
+    import random as _r
+    _r.seed(7)
+    for i in range(6):
+        cy = glyph_top + i * cell_h
+        ax1 = glyph_x - cell_w / 2 + _r.uniform(0.02, 0.06)
+        ay1 = cy + _r.uniform(0.04, 0.10)
+        ax2 = glyph_x + _r.uniform(-0.02, 0.06)
+        ay2 = cy + cell_h * 0.45 + _r.uniform(-0.04, 0.04)
+        add_line(slide, x1=ax1, y1=ay1, x2=ax2, y2=ay2,
+                 color=WALNUT, weight_pt=0.8)
+        bx1 = glyph_x + _r.uniform(-0.03, 0.05)
+        by1 = cy + cell_h * 0.40 + _r.uniform(-0.03, 0.04)
+        bx2 = glyph_x + cell_w / 2 - _r.uniform(0.02, 0.07)
+        by2 = cy + cell_h * 0.85 + _r.uniform(-0.03, 0.04)
+        add_line(slide, x1=bx1, y1=by1, x2=bx2, y2=by2,
+                 color=WALNUT, weight_pt=0.8)
+
+    add_text(slide, "talim,  kanihama,  c. 1820",
+             left=glyph_x - 1.05, top=glyph_top - 0.32, width=2.2, height=0.3,
+             font_name=JBM_LIGHT, size=9, color=FADED_INK,
+             spacing_hpt=60)
+
+    # Rouge hairline arc connecting glyph to insight body
+    add_line(slide, x1=glyph_x + 0.1, y1=glyph_top + 6 * cell_h - 0.1,
+             x2=2.6, y2=4.85,
+             color=ROUGE, weight_pt=1.0)
+
+    # Insight body, beneath the glyph. Frames what the methodology
+    # *produces* without echoing the closing slide's quote.
+    insight_top = 4.95
+    add_text(slide,
+             "twelve hours of speech.\nfour hundred fields.\none signed artefact.",
+             left=0.6, top=insight_top, width=4.6, height=1.0,
+             font_name=JBM_REG, size=14, bold=True, color=WALNUT,
+             line_spacing=1.4)
+    add_text(slide,
+             "the master's tacit knowledge,\nstructured under their own keypair,\nowned by the master in perpetuity.",
+             left=0.6, top=insight_top + 1.05, width=5.0, height=1.0,
+             font_name=JBM_LIGHT, size=11, color=FADED_INK, line_spacing=1.5)
+
+    # ── Right half: the 5-stage methodology pipeline ──
+    pipe_left = 6.4
+    pipe_top = 1.05
+    row_h = 0.95
+    stages = [
+        ("01", "session",
+         "master in own workshop, interview led in koshur"),
+        ("02", "transcribe",
+         "bhashini  >  ai4bharat  >  groq  >  whisper, ladder"),
+        ("03", "extract",
+         "multi-pass llm, strict json schema, repair loop"),
+        ("04", "sign",
+         "ed25519 over rfc 8785 jcs, one keypair per master"),
+        ("05", "index",
+         "pgvector embeddings, public api in under a second"),
+    ]
+    for i, (num, label, caption) in enumerate(stages):
+        ry = pipe_top + i * row_h
+        # number, in Light, big, faded ink for hierarchy
+        add_text(slide, num,
+                 left=pipe_left, top=ry, width=0.9, height=0.7,
+                 font_name=JBM_LIGHT, size=36, color=FADED_60,
+                 anchor=MSO_ANCHOR.TOP)
+        # walnut hairline under each row
+        add_line(slide, x1=pipe_left + 1.0, y1=ry + 0.1,
+                 x2=SLIDE_W - 0.6, y2=ry + 0.1,
+                 color=EDGE, weight_pt=0.5)
+        # label
+        add_text(slide, label,
+                 left=pipe_left + 1.05, top=ry + 0.18, width=2.0, height=0.32,
+                 font_name=JBM_REG, size=14, bold=True, color=WALNUT)
+        # caption
+        add_text(slide, caption,
+                 left=pipe_left + 1.05, top=ry + 0.46, width=SLIDE_W - pipe_left - 1.6,
+                 height=0.32,
+                 font_name=JBM_LIGHT, size=10, color=FADED_INK, spacing_hpt=60)
+
+    add_footer(slide, 4)
+
+
+# ─────────────────────────────────────────────────────────────────────
+#  SLIDE 05 — technology (deployed stack + live numbers)
+# ─────────────────────────────────────────────────────────────────────
+def slide_technology(prs):
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_parchment_bg(slide, SLIDE_W, SLIDE_H)
+
+    # Top caption
+    add_text(slide,
+             "technology / deployed today, free tier, queryable now",
+             left=0.6, top=0.45, width=12.0, height=0.25,
+             font_name=JBM_LIGHT, size=9, color=FADED_INK,
+             spacing_hpt=120)
+
+    # ── Left two-thirds: the manifest ──
+    manifest_x = 0.6
+    manifest_top = 1.1
+    rows = [
+        ("frontend",  "next.js 16  ·  vercel  ·  hunarmand.sal.lol"),
+        ("backend",   "fastapi  ·  render  ·  alembic on every deploy"),
+        ("ai core",   "fastapi  ·  hugging face spaces  ·  ed25519 sanad service"),
+        ("postgres",  "neon  ·  pgvector  ·  shared between backend + ai core"),
+        ("asr",       "bhashini  >  ai4bharat  >  groq  >  hf inference  >  whisper"),
+        ("llm",       "openrouter  ·  free + premium models behind one interface"),
+        ("embeddings","sentence-transformers  ·  intfloat / multilingual-e5-small"),
+        ("signature", "ed25519 over rfc 8785 jcs  ·  jws-compact qr  ·  offline verify"),
+    ]
+    row_h = 0.42
+    for i, (key, val) in enumerate(rows):
+        ry = manifest_top + i * row_h
+        # key column
+        add_text(slide, key,
+                 left=manifest_x, top=ry, width=1.6, height=0.32,
+                 font_name=JBM_REG, size=11, bold=True, color=WALNUT,
+                 spacing_hpt=60)
+        # equals separator
+        add_text(slide, "·",
+                 left=manifest_x + 1.65, top=ry, width=0.2, height=0.32,
+                 font_name=JBM_LIGHT, size=11, color=WALNUT_40)
+        # value column
+        add_text(slide, val,
+                 left=manifest_x + 1.95, top=ry, width=7.5, height=0.32,
+                 font_name=JBM_LIGHT, size=11, color=FADED_INK)
+
+    # Closing line under the manifest
+    closing_y = manifest_top + len(rows) * row_h + 0.25
+    add_text(slide,
+             "every dependency above is on a free tier today.",
+             left=manifest_x, top=closing_y, width=10.0, height=0.32,
+             font_name=JBM_REG, size=12, bold=True, color=WALNUT)
+
+    # ── Right column: the live numbers ──
+    nums_x = 10.4
+    nums_top = 1.1
+    nums = [
+        ("18",   "seeded\nartisan masters"),
+        ("54",   "bookable\nworkshops"),
+        ("2.8s", "median latency,\nsign + persist"),
+    ]
+    spacing = 1.55
+    for i, (n, cap) in enumerate(nums):
+        y = nums_top + i * spacing
+        add_text(slide, n,
+                 left=nums_x, top=y, width=2.5, height=0.95,
+                 font_name=JBM_LIGHT, size=64, color=WALNUT,
+                 anchor=MSO_ANCHOR.TOP)
+        add_text(slide, cap,
+                 left=nums_x, top=y + 0.95, width=2.5, height=0.55,
+                 font_name=JBM_LIGHT, size=9, color=FADED_INK,
+                 spacing_hpt=60, line_spacing=1.4)
+
+    # Punch line at the bottom
+    punch_y = SLIDE_H - 0.85
+    add_disk(slide, cx=0.7, cy=punch_y + 0.11, diameter_pt=8, fill=ROUGE)
+    add_text(slide,
+             "every number is queryable from the public api right now.",
+             left=0.95, top=punch_y, width=10.5, height=0.32,
+             font_name=JBM_REG, size=12, bold=True, color=WALNUT)
+    add_line(slide,
+             x1=0.95, y1=punch_y + 0.34, x2=0.95 + 2.4, y2=punch_y + 0.34,
+             color=ROUGE, weight_pt=0.9)
+
+    add_footer(slide, 5)
+
+
+# ─────────────────────────────────────────────────────────────────────
+#  (legacy, retained for reference) the old per-slide builders
 # ─────────────────────────────────────────────────────────────────────
 def slide_insight(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
@@ -962,7 +1329,7 @@ def slide_close(prs):
         align=PP_ALIGN.CENTER, spacing_hpt=120,
     )
 
-    add_footer(slide, 7)
+    add_footer(slide, 6)
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -971,13 +1338,12 @@ def build() -> Path:
     prs.slide_width = Inches(SLIDE_W)
     prs.slide_height = Inches(SLIDE_H)
 
-    slide_cover(prs)
-    slide_disappearance(prs)
-    slide_insight(prs)
-    slide_system(prs)
-    slide_economics(prs)
-    slide_proof(prs)
-    slide_close(prs)
+    slide_cover(prs)         # 01 — cover
+    slide_disappearance(prs) # 02 — problem
+    slide_solution(prs)      # 03 — solution
+    slide_methodology(prs)   # 04 — methodology
+    slide_technology(prs)    # 05 — technology
+    slide_close(prs)         # 06 — close
 
     out = Path(__file__).with_name("hunarmand.pptx")
     prs.save(out)
