@@ -635,14 +635,14 @@ def slide_system(prs):
     # Nodes
     nodes = [
         # (x, y, diameter_pt, fill, label, function)
-        (1.2,  1.4,  10, WALNUT, "vault",
+        (1.2,  1.6,  10, WALNUT, "vault",
          "captures what the master never wrote down"),
-        (4.5,  2.95, 12, ROUGE,  "sanad",
+        (4.4,  3.1,  12, ROUGE,  "sanad",
          "signs the piece against the master's keypair"),
-        (7.8,  4.5,  10, WALNUT, "ustaad",
-         "sells the master's own time, not a middleman's"),
-        (11.1, 6.05, 10, WALNUT, "bazaar",
-         "sells the verified object, provenance attached"),
+        (7.6,  4.55, 10, WALNUT, "ustaad",
+         "sells the master's own time, not the middleman's"),
+        (10.4, 6.0,  10, WALNUT, "bazaar",
+         "sells the object, with provenance attached"),
     ]
 
     # Connectors between nodes (with disk margins)
@@ -686,28 +686,40 @@ def slide_system(prs):
             spacing_hpt=60,
         )
 
-    # Above sanad (the keystone)
+    # The keystone treatment sits in the upper-right white space, well
+    # clear of the vault description and the diagonal connector. Anchored
+    # right of the slide so it reads as a margin gloss, not as a label
+    # competing with the pipeline.
     sanad_x, sanad_y = nodes[1][0], nodes[1][1]
-    keystone_y = 1.6  # higher up, in empty space
-    # Rouge hairline
+    keystone_left = 9.6
+    keystone_y = 0.95
     add_line(
         slide,
-        x1=sanad_x - 0.2, y1=keystone_y,
-        x2=sanad_x - 0.2 + 1.4, y2=keystone_y,
+        x1=keystone_left, y1=keystone_y,
+        x2=keystone_left + 1.4, y2=keystone_y,
         color=ROUGE, weight_pt=1.0,
     )
     add_text(
         slide,
         "the keystone",
-        left=sanad_x - 0.2, top=keystone_y + 0.08, width=2.6, height=0.32,
+        left=keystone_left, top=keystone_y + 0.08, width=2.6, height=0.32,
         font_name=JBM_REG, size=11, bold=True, color=WALNUT,
     )
     add_text(
         slide,
-        "provenance is what buyers pay a premium for",
-        left=sanad_x - 0.2, top=keystone_y + 0.36, width=4.5, height=0.32,
+        "provenance is what buyers pay\na premium for, today",
+        left=keystone_left, top=keystone_y + 0.36, width=3.3, height=0.7,
         font_name=JBM_LIGHT, size=9, color=FADED_INK,
-        spacing_hpt=60,
+        spacing_hpt=60, line_spacing=1.4,
+    )
+
+    # A faint walnut leader line drops from the keystone label down to
+    # the sanad rouge node, so the gloss stays anchored to the keystone.
+    add_line(
+        slide,
+        x1=keystone_left + 0.1, y1=keystone_y + 0.85,
+        x2=sanad_x + 0.18,      y2=sanad_y - 0.12,
+        color=WALNUT_30, weight_pt=0.5, dash="sysDot",
     )
 
     add_footer(slide, 4)
@@ -786,27 +798,23 @@ def slide_economics(prs):
     add_filled_rect(slide, left=bar_x + seg1b_w, top=top2, width=seg2b_w, height=bar_h,
                     fill=WALNUT)
 
-    # captions under hunarmand bar.
-    # The rouge segment is too narrow to host its own caption underneath
-    # without colliding with the artisan caption. Pull the platform
-    # caption out left of the bar with a tiny line that points at the
-    # segment, so the typography never touches itself.
+    # captions under hunarmand bar. Both anchored at segment edges so
+    # the eye reads them as labels of the slivers above. The rouge
+    # segment is narrow enough that its caption right-aligns to end at
+    # the segment edge, leaving comfortable space before the artisan
+    # caption that left-aligns to start at the same edge.
     cap2_top = top2 + bar_h + 0.12
-    # Platform caption sits in the empty space above the bar, right-aligned
-    # to end at the rouge segment's right edge.
     add_text(
         slide,
         "platform, 6 to 9 percent",
-        left=bar_x - 1.6, top=top2 - 0.45, width=1.6 + seg1b_w, height=0.25,
+        left=bar_x - 1.6, top=cap2_top, width=1.6 + seg1b_w - 0.05, height=0.25,
         font_name=JBM_LIGHT, size=9, color=FADED_INK,
         align=PP_ALIGN.RIGHT, spacing_hpt=60,
     )
-    # Artisan caption sits below the walnut segment, well clear of the
-    # rouge segment.
     add_text(
         slide,
         "artisan, 91 to 94 percent",
-        left=bar_x + seg1b_w + 0.05, top=cap2_top, width=seg2b_w, height=0.25,
+        left=bar_x + seg1b_w + 0.15, top=cap2_top, width=seg2b_w, height=0.25,
         font_name=JBM_LIGHT, size=9, color=FADED_INK,
         spacing_hpt=60,
     )
@@ -902,18 +910,18 @@ def slide_close(prs):
     add_parchment_bg(slide, SLIDE_W, SLIDE_H)
 
     # Quote: two lines, line 1 at 60% alpha, line 2 at 100% bold.
-    # 22pt mono fits each ~50-char line on a single line within a
-    # 12.3"-wide box, with no wrapping artefacts on any renderer.
+    # 28pt mono fits ~50 chars on a single line in a 12.3"-wide box and
+    # has the weight a closing slide deserves on a 13.3" canvas.
     quote_left = 0.5
     quote_w = SLIDE_W - 1.0
-    quote_top = 2.7
+    quote_top = 2.45
 
     # Line 1: faded (precomputed walnut at 60%)
     add_text(
         slide,
         "we are not bringing foreign technology to kashmir.",
-        left=quote_left, top=quote_top, width=quote_w, height=0.55,
-        font_name=JBM_LIGHT, size=22, color=WALNUT_60,
+        left=quote_left, top=quote_top, width=quote_w, height=0.7,
+        font_name=JBM_LIGHT, size=28, color=WALNUT_60,
         align=PP_ALIGN.CENTER,
     )
 
@@ -921,13 +929,13 @@ def slide_close(prs):
     add_text(
         slide,
         "we are upgrading what kashmir already invented.",
-        left=quote_left, top=quote_top + 0.65, width=quote_w, height=0.55,
-        font_name=JBM_REG, size=22, bold=True, color=WALNUT,
+        left=quote_left, top=quote_top + 0.78, width=quote_w, height=0.7,
+        font_name=JBM_REG, size=28, bold=True, color=WALNUT,
         align=PP_ALIGN.CENTER,
     )
 
     # Rouge hairline below quote, centered
-    rule_y = quote_top + 0.65 + 0.55 + 0.45
+    rule_y = quote_top + 0.78 + 0.7 + 0.5
     rule_w = 1.4
     add_line(
         slide,
